@@ -78,12 +78,10 @@ UDP-port = 4444 # default 4444""")
     @staticmethod
     def formatter(data):
         packet = dict()
-        packet["LON"] = float(data[0])
-        packet["LAT"] = float(data[1])
-        packet["ALT"] = float(data[2])
-        packet["ROL"] = float(data[3])
-        packet["PTC"] = float(data[4])
-        packet["HDG"] = float(data[5])
+        i = 0
+        for header in ("LON", "LAT", "ALT", "ROL", "PTC", "HDG", "AOA"):
+            packet[header] = float(data[i])
+            i += 1
         return packet
 
 if __name__ == '__main__':
