@@ -65,14 +65,26 @@ UDP-port = 4444 # default 4444""")
         return
 
     def listen_to_port(self):
-        """listen_to_port listens to the specified port and formats the data"""
+        """listen_to_port listens to the specified port and sends it
+        to the formatter method"""
 
         data = self.__sock.recvfrom(1024)[0]
         data = str(data)
         data = data.strip("b'\\n")
         data = data.split(",")
-        return data
+        packet = self.formatter(data)
+        return packet
 
+    @staticmethod
+    def formatter(data):
+        packet = dict()
+        packet["LON"] = float(data[0])
+        packet["LAT"] = float(data[1])
+        packet["ALT"] = float(data[2])
+        packet["ROL"] = float(data[3])
+        packet["PTC"] = float(data[4])
+        packet["HDG"] = float(data[5])
+        return packet
 
 if __name__ == '__main__':
     RX = UDPReceiver()
