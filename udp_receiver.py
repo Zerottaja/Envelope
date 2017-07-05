@@ -68,7 +68,7 @@ UDP-port = 4444 # default 4444""")
         """listen_to_port listens to the specified port and sends it
         to the formatter method"""
 
-        data = self.__sock.recvfrom(1024)[0]
+        data = self.__sock.recvfrom(128)[0]
         data = str(data)
         data = data.strip("b'\\n")
         data = data.split(",")
