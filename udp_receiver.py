@@ -1,15 +1,17 @@
-
+"""This module contains the UDP listening class UDPReceiver"""
 
 import socket
 
 
 class UDPReceiver:
+    """UDPReceiver is a class that listens to the specified UDP-port and sends
+    the data onwards to it's master class"""
 
     def __init__(self):
 
-        # read_config() attempts to read the config.txt file and changes
-        # some program parameters if the user so wishes
         def read_config():
+            """read_config() attempts to read the config.txt file and changes
+            some program parameters if the user so wishes"""
             # open the config file
             try:
                 fileobject = open("config.txt", 'r')
@@ -43,8 +45,8 @@ UDP-port = 4444 # default 4444""")
                             self.__udp_port = int(line[1])
 
                 # if something's wrong with the config-file, defaults remain
-                except (IndexError, ValueError) as e:
-                    print(e, "in config.txt line {}".format(line))
+                except (IndexError, ValueError) as err:
+                    print(err, "in config.txt line {}".format(line))
                     continue
             fileobject.close()
             return
@@ -63,13 +65,17 @@ UDP-port = 4444 # default 4444""")
         return
 
     def listen_to_port(self):
-        while True:
-            data, addr = self.__sock.recvfrom(1024)
-            data = str(data)
-            data = data.strip("b'\\n")
-            print(data)
+        """listen_to_port listens to the specified port and formats the data"""
+
+        data = self.__sock.recvfrom(1024)[0]
+        data = str(data)
+        data = data.strip("b'\\n")
+        data = data.split(",")
+        return data
 
 
 if __name__ == '__main__':
-    rx = UDPReceiver()
-    rx.listen_to_port()
+    RX = UDPReceiver()
+    while True:
+        rx_data = RX.listen_to_port()
+        print(rx_data)
