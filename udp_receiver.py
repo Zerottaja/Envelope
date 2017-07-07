@@ -45,8 +45,8 @@ UDP-port = 4444 # default 4444""")
                             self.__udp_port = int(line[1])
 
                 # if something's wrong with the config-file, defaults remain
-                except (IndexError, ValueError) as err:
-                    print(err, "in config.txt line {}".format(line))
+                except (IndexError, ValueError) as conf_err:
+                    print(conf_err, "in config.txt line {}".format(line))
                     continue
             fileobject.close()
             return
@@ -59,16 +59,23 @@ UDP-port = 4444 # default 4444""")
 
         self.__sock = socket.socket(socket.AF_INET,
                                     socket.SOCK_DGRAM)
-        self.__sock.bind((self.__udp_ip, self.__udp_port))
+        self.__sock.settimeout(1)
+        try:
+            self.__sock.bind((self.__udp_ip, self.__udp_port))
+        except OSError as err:
+            print("{}. Check connection.".format(err))
         # after setup, these vars are not needed anymore
         del self.__udp_ip, self.__udp_port
         return
 
     def listen_to_port(self):
-        """listen_to_port listens to the specified port and sends it
+        """listen_to_port() listens to the specified port and sends it
         to the formatter method"""
 
-        data = self.__sock.recvfrom(128)[0]
+        try:
+            data = self.__sock.recvfrom(1024)[0]
+        except socket.timeout:
+            return None
         data = str(data)
         data = data.strip("b'\\n")
         data = data.split(",")
@@ -80,7 +87,10 @@ UDP-port = 4444 # default 4444""")
         packet = dict()
         i = 0
         for header in ("LON", "LAT", "ALT", "ROL", "PTC", "HDG", "AOA"):
-            packet[header] = float(data[i])
+            try:
+                packet[header] = float(data[i])
+            except ValueError:
+                print(data[i])
             i += 1
         return packet
 
