@@ -84,6 +84,7 @@ UDP-port = 4444 # default 4444""")
 
     @staticmethod
     def formatter(data):
+        """DOCSTRING"""  # TODO Docstring
         packet = dict()
         i = 0
         for header in ("LON", "LAT", "ALT", "ROL", "PTC", "HDG", "AOA"):
