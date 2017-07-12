@@ -4,9 +4,13 @@ all the gathered and plotted data from the simulator"""
 from tkinter import Tk, Label, Frame, Canvas
 from udp_receiver import UDPReceiver
 
+import math
+# import time
+
 
 class EnvelopeWindow:
-    """DOCSTRING"""  # TODO Docstring
+    """EnvelopeWindow is a class that generates a visual presentation of
+    a simulator's positional and reactional values"""
 
     def __init__(self):
 
@@ -18,15 +22,15 @@ class EnvelopeWindow:
 
         Label(self.__root, text="Value log").grid(row=1, column=1,
                                                   columnspan=4)
-        Label(self.__root, text="AOA bar", justify="left")\
+        Label(self.__root, text="AOA bar", justify="left") \
             .grid(row=4, column=4, sticky="w")
-        Label(self.__root, text="Load bar", justify="right")\
+        Label(self.__root, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__root, text="Envelope plot", justify="right")\
+        Label(self.__root, text="Envelope plot", justify="right") \
             .grid(row=1, column=5, sticky="s")
         Label(self.__root, text="Load plot", justify="right") \
             .grid(row=1, column=6, sticky="s")
-        Label(self.__root, text="Load bar", justify="right")\
+        Label(self.__root, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
         Label(self.__root, height=0).grid(row=3, column=1, columnspan=4)
         Label(self.__root, height=0).grid(row=5, column=1, columnspan=4)
@@ -49,28 +53,43 @@ class EnvelopeWindow:
         self.__logframe_contents["values"].pack(side="right")
 
         self.__plotframe = Canvas(self.__root, height=600, width=600,
-                                  borderwidth=4, relief="sunken", bg="white")
+                                  borderwidth=4, relief="sunken", bg="#0f228b")
         self.__plotframe.grid(row=2, rowspan=6, column=5, sticky="n")
         self.__plotframe.grid_propagate(0)
-        self.__plotframe.create_line(300, 0, 300, 605)
-        self.__plotframe.create_line(0, 500, 605, 500)
+        self.__plotframe.create_line(300, 0, 300, 605, fill="white")
+        self.__plotframe.create_line(0, 500, 605, 500, fill="white")
+        self.__plotframe.create_oval(298, 498, 302, 502, fill="white",
+                                     tags="origin")
         self.__plotframe.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                      tags="dot")
-        self.__plotframe.create_oval(298, 498, 302, 502, fill="black",
-                                     tags="origin")
+        self.__plotframe.create_text(10, 498, text="Roll (degrees)",
+                                     anchor="sw", fill="white")
+        self.__plotframe.create_text(305, 595,
+                                     text="Angle of attack (degrees)",
+                                     anchor="sw", fill="white")
         self.__plotframe.move("dot", 295, 495)
 
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
-                                   borderwidth=4, relief="sunken", bg="white")
+                                   borderwidth=4, relief="sunken",
+                                   bg="#0f228b")
         self.__plotframe2.grid(row=2, rowspan=6, column=6, sticky="n")
-        self.__plotframe2.create_line(0, 400, 605, 400)
-        self.__plotframe2.create_line(50, 0, 50, 605)
+        self.__plotframe2.create_line(0, 400, 605, 400, fill="white")
+        self.__plotframe2.create_line(50, 0, 50, 605, fill="white")
+        self.__plotframe2.create_oval(48, 398, 52, 402, fill="white",
+                                      tags="origin")
+        self.__plotframe2.create_oval(0, 0, 10, 10, fill="red", outline="red",
+                                      tags="dot")
+        self.__plotframe2.move("dot", 45, 395)
+        self.__plotframe2.create_text(595, 398, text="Air velocity (knots)",
+                                      anchor="se", fill="white")
+        self.__plotframe2.create_text(55, 595,
+                                      text="Angle of attack (degrees)",
+                                      anchor="sw", fill="white")
 
-        self.__datapoints = []
+        self.__plot1_lines = []
 
         self.__oldpitch = None
         self.__oldroll = None
-        self.__oldaoa = None
 
         self.__aoaframe = Canvas(self.__root, width=25, height=300,
                                  borderwidth=4,
@@ -97,13 +116,13 @@ class EnvelopeWindow:
         self.__inclframe.create_line(110, 100, 110, 110, fill="black", width=2)
         self.__inclframe.create_line(170, 100, 110, 100, fill="black", width=2)
         self.__gndxy = [(-100, 100), (300, 100), (300, 300), (-100, 300)]
-        self.__gnd = self.__inclframe\
+        self.__gnd = self.__inclframe \
             .create_polygon(self.__gndxy, fill="#8c603d", tags="gnd")
         self.__inclframe.lower("gnd")
         self.__inclframe.create_oval(99, 99, 101, 101)
 
         self.__rx = UDPReceiver()
-        self.__log = open("capture2.txt", "r")
+        self.__log = open("capture4.txt", "r")
         self.__root.after(100, self.read_log)
         # self.__root.after(100, self.listen_udp)
 
@@ -112,7 +131,9 @@ class EnvelopeWindow:
         return
 
     def listen_udp(self):
-        """DOCSTRING"""  # TODO Docstring
+        """listen_udp() is a method that calls UDPReceiver's method
+        to receive packets through UDP"""
+
         packet = self.__rx.listen_to_port()
         if packet is not None:
             self.display_data(packet)
@@ -120,11 +141,13 @@ class EnvelopeWindow:
         return
 
     def read_log(self):
-        """DOCSTRING"""  # TODO Docstring
+        """read_log() is a method that reads prerecorded packets from a
+        text file and sends them onwards, emulating actual traffic"""
+
         data = self.__log.readline()
         if data == '':
             self.__log.close()
-            self.__log = open("capture2.txt", "r")
+            self.__log = open("capture4.txt", "r")
             print("loop")
         else:
             data = str(data)
@@ -132,13 +155,14 @@ class EnvelopeWindow:
             data = data.split(",")
             packet = self.__rx.formatter(data)
             self.display_data(packet)
-        self.__root.after(30, self.read_log)
+        self.__root.after(10, self.read_log)
         return
 
     def display_data(self, packet):
-        """DOCSTRING"""  # TODO Docstring
-        import time
-        t0 = float(time.time())
+        """display_data() is a method that calls all methods
+        that update EnvelopeWindow's UI"""
+
+        # t0 = float(time.time())
         self.update_logframe(packet)
         self.update_plotframe(packet)
         self.update_aoaframe(packet)
@@ -146,12 +170,12 @@ class EnvelopeWindow:
         self.update_loadframe(packet)
         self.__oldpitch = packet["PTC"]
         self.__oldroll = packet["ROL"]
-        self.__oldaoa = packet["PTC"]
-        print(float(time.time()) - t0)
+        # print("dT of window update:", float(time.time()) - t0)
         return
 
     def update_logframe(self, packet):
-        """DOCSTRING"""  # TODO Docstring
+        """update_logframe is a method that updates
+        the logframe's numerical contents"""
 
         self.__logframe_contents["values"] \
             .configure(text="%.4f° \n%.4f° \n%.4fft\n%.4f° \n%.4f° "
@@ -163,78 +187,81 @@ class EnvelopeWindow:
         return
 
     def update_plotframe(self, packet):
-        """DOCSTRING"""  # TODO Docstring
+        """update_plotframe is a method that updates
+        the contents of the AOA-ROLL -graph"""
         scale = 5
         try:
-            self.__datapoints \
-                .append(self.__plotframe
-                        .create_line(self.__oldroll*scale+300,
-                                     self.__oldpitch*-scale+500,
-                                     packet["ROL"]*scale+300,
-                                     packet["PTC"]*-scale+500))
-            dp = (packet["PTC"] - self.__oldpitch) * -scale
-            dr = (packet["ROL"] - self.__oldroll) * scale
+            self.__plot1_lines.append(self.__plotframe
+                                      .create_line(self.__oldroll*scale+300,
+                                                   self.__oldpitch*-scale+500,
+                                                   packet["ROL"]*scale+300,
+                                                   packet["PTC"]*-scale+500,
+                                                   fill="white"))
         except TypeError:
-            dp = packet["PTC"] * -scale
-            dr = packet["ROL"] * scale
-        self.__plotframe.move("dot", dr, dp)
-        if len(self.__datapoints) > 5000:
-            self.__plotframe.delete(self.__datapoints[0])
-            self.__datapoints.pop(0)
+            pass
+        dp = packet["PTC"] * -scale
+        dr = packet["ROL"] * scale
+        newxy = [295+dr, 495+dp, 305+dr, 505+dp]
+        self.__plotframe.coords("dot", *newxy)
+        qty = len(self.__plot1_lines)
+        if qty > 5000:
+            self.__plotframe.delete(self.__plot1_lines[0])
+            self.__plot1_lines.pop(0)
         return
 
     def update_aoaframe(self, packet):
-        """DOCSTRING"""  # TODO Docstring
+        """update_aoaframe is a method that updates
+        the visual bar graph displaying AOA"""
         self.__aoaframe.coords("aoabar",
-                               [0, 150, 30, 150, 30, 150-(3*packet["PTC"]), 0,
-                                150-(3*packet["PTC"])])
-        color = hex(abs(int(packet["PTC"] / 90 * 255 * 4) - 0xff)).lstrip('0')
+                               [0, 150, 30, 150, 30, 150-(5*packet["PTC"]), 0,
+                                150-(5*packet["PTC"])])
+        if abs(packet["PTC"]) > 30:
+            self.__aoaframe.itemconfig("aoabar", fill="#800000")
+            return
+        color = hex(abs(int(abs(packet["PTC"]) / 30*255) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
         self.__aoaframe.itemconfig("aoabar", fill="#80{}00".format(color))
+        self.__aoaframe.lower("aoabar")
         return
 
     def update_loadframe(self, packet):
-        """DOCSTRING"""  # TODO Docstring
+        """update_loadframe is a method that updates
+        the visual bar graph displaying load on wings"""
         self.__loadframe.coords("loadbar",
-                                [0, 150, 30, 150, 30, 150-(6*packet["PTC"]), 0,
-                                 150-(6*packet["PTC"])])
-        color = hex(abs(int(packet["PTC"] / 90 * 255 * 4) - 0xff)).lstrip('0')
+                                [0, 150, 30, 150, 30, 150-(10*packet["PTC"]),
+                                 0, 150-(10*packet["PTC"])])
+        if abs(packet["PTC"]) > 30:
+            self.__loadframe.itemconfig("loadbar", fill="#800000")
+            return
+        color = hex(abs(int(abs(packet["PTC"]) / 15*255) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
         self.__loadframe.itemconfig("loadbar", fill="#80{}00".format(color))
+        self.__loadframe.lower("loadbar")
         return
 
     def update_inclframe(self, packet):
-        """DOCSTRING"""  # TODO Docstring
-        try:
-            dy = (packet["PTC"] - self.__oldpitch) * 2
-        except TypeError:
-            dy = packet["PTC"] * 2
-        newxy = []
-        i = 0
-        for x, y in self.__gndxy:
-            newxy.append(x)
-            newxy.append(y+dy)
-            self.__gndxy[i] = (x, y+dy)
-            i += 1
-        self.__inclframe.coords("gnd", *newxy)
-
-        import math
+        """update_inclframe is a method that updates
+        the visual absolute inclination display contents"""
+        scale = 2
+        y_offset = packet["PTC"] * scale
+        newxy = [-100, int(100+y_offset), 300, int(100+y_offset),
+                 300, 300, -100, 300]
         deg = packet["ROL"]
         rad = (math.pi / 180) * deg
-        newxy = []
-        i = 0
-        for x, y in self.__gndxy:
+        for i in range(0, 4):
+            x = newxy[i*2]
+            y = newxy[i*2+1]
+            offset = complex(100, 100)
             v = complex(math.cos(-rad), math.sin(-rad)) * \
-                (complex(x, y) - complex(100, 100)) + complex(100, 100)
-            newxy.append(v.real)
-            newxy.append(v.imag)
-            self.__gndxy[i] = (x, y + dy)
-            i += 1
+                (complex(x, y) - offset) + offset
+            newxy[i*2] = v.real
+            newxy[i*2+1] = v.imag
         self.__inclframe.coords("gnd", *newxy)
+        return
 
 if __name__ == '__main__':
     EnvelopeWindow()

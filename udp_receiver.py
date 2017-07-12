@@ -66,11 +66,16 @@ UDP-port = 4444 # default 4444""")
             print("{}. Check connection.".format(err))
         # after setup, these vars are not needed anymore
         del self.__udp_ip, self.__udp_port
+
+        self.__timer = 0
+
         return
 
     def listen_to_port(self):
         """listen_to_port() listens to the specified port and sends it
         to the formatter method"""
+
+        import time
 
         try:
             data = self.__sock.recvfrom(1024)[0]
@@ -80,6 +85,8 @@ UDP-port = 4444 # default 4444""")
         data = data.strip("b'\\n")
         data = data.split(",")
         packet = self.formatter(data)
+        # print("dT between packages:", float(time.time()) - self.__timer)
+        self.__timer = time.time()
         return packet
 
     @staticmethod
