@@ -53,16 +53,18 @@ class EnvelopeWindow:
         self.__plotframe.grid(row=2, rowspan=6, column=5, sticky="n")
         self.__plotframe.grid_propagate(0)
         self.__plotframe.create_line(300, 0, 300, 605)
-        self.__plotframe.create_line(0, 300, 605, 300)
+        self.__plotframe.create_line(0, 500, 605, 500)
         self.__plotframe.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                      tags="dot")
-        self.__plotframe.create_oval(298, 298, 302, 302, fill="black",
+        self.__plotframe.create_oval(298, 498, 302, 502, fill="black",
                                      tags="origin")
-        self.__plotframe.move("dot", 295, 295)
+        self.__plotframe.move("dot", 295, 495)
 
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
                                    borderwidth=4, relief="sunken", bg="white")
         self.__plotframe2.grid(row=2, rowspan=6, column=6, sticky="n")
+        self.__plotframe2.create_line(0, 400, 605, 400)
+        self.__plotframe2.create_line(50, 0, 50, 605)
 
         self.__datapoints = []
 
@@ -167,9 +169,9 @@ class EnvelopeWindow:
             self.__datapoints \
                 .append(self.__plotframe
                         .create_line(self.__oldroll*scale+300,
-                                     self.__oldpitch*-scale+300,
+                                     self.__oldpitch*-scale+500,
                                      packet["ROL"]*scale+300,
-                                     packet["PTC"]*-scale+300))
+                                     packet["PTC"]*-scale+500))
             dp = (packet["PTC"] - self.__oldpitch) * -scale
             dr = (packet["ROL"] - self.__oldroll) * scale
         except TypeError:
@@ -183,26 +185,26 @@ class EnvelopeWindow:
 
     def update_aoaframe(self, packet):
         """DOCSTRING"""  # TODO Docstring
-        self.__aoaframe.coords(self.__aoaframe.find_withtag("aoabar"),
+        self.__aoaframe.coords("aoabar",
                                [0, 150, 30, 150, 30, 150-(3*packet["PTC"]), 0,
                                 150-(3*packet["PTC"])])
-        color = hex(int(packet["PTC"]/90*255*2)).lstrip('0')
+        color = hex(abs(int(packet["PTC"] / 90 * 255 * 4) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
-        self.__aoaframe.itemconfig("aoabar", fill="#{}5a08".format(color))
+        self.__aoaframe.itemconfig("aoabar", fill="#80{}00".format(color))
         return
 
     def update_loadframe(self, packet):
         """DOCSTRING"""  # TODO Docstring
-        self.__loadframe.coords(self.__loadframe.find_withtag("loadbar"),
+        self.__loadframe.coords("loadbar",
                                 [0, 150, 30, 150, 30, 150-(6*packet["PTC"]), 0,
-                                150-(6*packet["PTC"])])
-        color = hex(int(packet["PTC"]/90*255*4)).lstrip('0')
+                                 150-(6*packet["PTC"])])
+        color = hex(abs(int(packet["PTC"] / 90 * 255 * 4) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
-        self.__loadframe.itemconfig("loadbar", fill="#{}5a08".format(color))
+        self.__loadframe.itemconfig("loadbar", fill="#80{}00".format(color))
         return
 
     def update_inclframe(self, packet):
@@ -218,7 +220,7 @@ class EnvelopeWindow:
             newxy.append(y+dy)
             self.__gndxy[i] = (x, y+dy)
             i += 1
-        self.__inclframe.coords(self.__inclframe.find_withtag("gnd"), *newxy)
+        self.__inclframe.coords("gnd", *newxy)
 
         import math
         deg = packet["ROL"]
@@ -232,7 +234,7 @@ class EnvelopeWindow:
             newxy.append(v.imag)
             self.__gndxy[i] = (x, y + dy)
             i += 1
-        self.__inclframe.coords(self.__inclframe.find_withtag("gnd"), *newxy)
+        self.__inclframe.coords("gnd", *newxy)
 
 if __name__ == '__main__':
-    EW = EnvelopeWindow()
+    EnvelopeWindow()
