@@ -140,10 +140,11 @@ class EnvelopeWindow:
         Label(self.__root, text="Limit data points to last:")\
             .grid(row=8, column=6, sticky="e")
         vcmd = self.__root.register(self.validate_entry)
-        self.__maxdatapoints = 5000
+        self.__maxdatapoints = 3000
         self.__datapt_entry = Entry(self.__root, validate='key',
-                                    validatecommand=(vcmd, '%S'))
-        self.__datapt_entry.insert(-1, 'default text')
+                                    validatecommand=(vcmd, '%S'),
+                                    justify="right", width=7)
+        self.__datapt_entry.insert(-1, self.__maxdatapoints)
         self.__datapt_entry.grid(row=8, column=7)
 
         self.__setbutton = Button(self.__root, text="Set",
@@ -151,7 +152,7 @@ class EnvelopeWindow:
         self.__setbutton.grid(row=8, column=8, sticky="w")
 
         self.__rx = UDPReceiver()
-        self.__log = open("capture.txt", "r")
+        self.__log = open("capture4.txt", "r")
         self.__root.after(100, self.read_log)
         # self.__root.after(100, self.listen_udp)
 
@@ -210,7 +211,7 @@ class EnvelopeWindow:
         data = self.__log.readline()
         if data == '':
             self.__log.close()
-            self.__log = open("capture.txt", "r")
+            self.__log = open("capture4.txt", "r")
             print("loop")
         else:
             data = str(data)
