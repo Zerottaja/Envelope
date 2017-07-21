@@ -153,8 +153,8 @@ class EnvelopeWindow:
 
         self.__rx = UDPReceiver()
         self.__log = open("capture4.txt", "r")
-        self.__root.after(100, self.read_log)
-        # self.__root.after(100, self.listen_udp)
+        # self.__root.after(100, self.read_log)
+        self.__root.after(100, self.listen_udp)
 
         self.__root.mainloop()
 
