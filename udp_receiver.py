@@ -81,9 +81,6 @@ UDP-port = 4444 # default 4444""")
             data = self.__sock.recvfrom(1024)[0]
         except socket.timeout:
             return None
-        data = str(data)
-        data = data.strip("b'\\n")
-        data = data.split(",")
         packet = self.formatter(data)
         # print("dT between packages:", float(time.time()) - self.__timer)
         self.__timer = time.time()
@@ -91,7 +88,10 @@ UDP-port = 4444 # default 4444""")
 
     @staticmethod
     def formatter(data):
-        """DOCSTRING"""  # TODO Docstring
+        """formatter() packs udp data into an easily accessible dict packet"""
+        data = str(data)
+        data = data.strip("b'\\n")
+        data = data.split(",")
         packet = dict()
         i = 0
         for header in ("LON", "LAT", "ALT", "ROL", "PTC", "HDG", "AOA"):

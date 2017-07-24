@@ -3,9 +3,10 @@ all the gathered and plotted data from the simulator"""
 
 from tkinter import Tk, Label, Frame, Canvas, PhotoImage, Button, Entry
 from udp_receiver import UDPReceiver
+from hexdumpreader import HexDumpReader
 
 import math
-# import time
+import time
 
 
 class EnvelopeWindow:
@@ -44,11 +45,12 @@ class EnvelopeWindow:
         self.__logframe_contents["headers"] \
             = Label(self.__logframe,
                     text="LON:\t\nLAT:\t\nALT:\t\nROLL:\t\nPITCH:\t"
-                         "\nHDG:\t\nAOA:\t",
+                         "\nHDG:\t\nAOA:\t\nLOAD:\t\nAIRSPD:\t",
                     justify="left", bg='white')
         self.__logframe_contents["headers"].pack(side="left")
         self.__logframe_contents["values"] \
-            = Label(self.__logframe, text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
+            = Label(self.__logframe,
+                    text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
                     justify="right", bg='white')
         self.__logframe_contents["values"].pack(side="right")
 
@@ -152,9 +154,13 @@ class EnvelopeWindow:
         self.__setbutton.grid(row=8, column=8, sticky="w")
 
         self.__rx = UDPReceiver()
+        self.__hdr = HexDumpReader()
         self.__log = open("capture4.txt", "r")
         # self.__root.after(100, self.read_log)
-        self.__root.after(100, self.listen_udp)
+        # self.__root.after(100, self.listen_udp)
+        self.__root.after(100, self.read_hexdump)
+
+        self.__t0 = float(time.time())
 
         self.__root.mainloop()
 
@@ -222,12 +228,20 @@ class EnvelopeWindow:
         self.__root.after(30, self.read_log)
         return
 
+    def read_hexdump(self):
+        """Docstring"""
+        packet = self.__hdr.read_hexdump()
+        if packet:
+            self.display_data(packet)
+        self.__root.after(100, self.read_hexdump)
+        return
+
     def display_data(self, packet):
         """display_data() is a method that calls all methods
         that update EnvelopeWindow's UI"""
         if not self.__stop:
-            # t0 = float(time.time())
             self.update_logframe(packet)
+            # print(packet["LON"])
             self.update_plotframe(packet)
             self.update_aoaframe(packet)
             self.update_inclframe(packet)
@@ -237,7 +251,8 @@ class EnvelopeWindow:
             self.__oldroll = packet["ROL"]
             self.__oldlon = packet["LON"]
             self.__oldlat = packet["LAT"]
-            # print("dT of window update:", float(time.time()) - t0)
+            print("dT of window update:", float(time.time()) - self.__t0)
+            self.__t0 = float(time.time())
 
         return
 
@@ -247,10 +262,12 @@ class EnvelopeWindow:
 
         self.__logframe_contents["values"] \
             .configure(text="%.4f° \n%.4f° \n%.4fft\n%.4f° \n%.4f° "
-                            "\n%.4f° \n%.4f° "
-                            % (packet["LON"], packet["LAT"],
+                            "\n%.4f° \n%.4f° \n%.4fg \n%.4fkt "
+                            % (packet['LON'], packet["LAT"],
                                packet["ALT"], packet["ROL"],
-                               packet["PTC"], packet["HDG"], packet["AOA"]),
+                               packet["PTC"], packet["HDG"],
+                               packet["AOA"], packet["LOA"]/9.80665,
+                               packet["ASP"]),
                        justify="right", bg='white')
         return
 
