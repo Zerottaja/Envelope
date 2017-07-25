@@ -15,9 +15,8 @@ class HexDumpReader:
         return
 
     def read_hexdump(self):
-        """read_hexdump() method fetches a new line from the pipe,
-        strips away the delimiters and assigns
-        predefined slots of data to variables"""
+        """read_hexdump() method fetches a new line from the pipe, strips away
+        the delimiters and assigns predefined slots of data to variables"""
         data = self.__file.readline()
         if data != "":
             data = data.replace(':', '')
@@ -35,9 +34,16 @@ class HexDumpReader:
                                          ("LON", '>d', data[208:224]),
                                          ("ALT", '!f', data[240:248])):
                 packet[header] = struct.unpack(arg, bytes.fromhex(subdata))[0]
-
         except struct.error:
             pass
+        packet = self.formatter(packet)
+        return packet
+
+    @staticmethod
+    def formatter(packet):
+        """formatter is a method that transforms some units to SI"""
+        # LOAD from ft/s^2 to g
+        packet["LOA"] = packet["LOA"] / 3.2808399 / 9.80665
         return packet
 
 
@@ -49,5 +55,5 @@ class HexDumpReader:
 if __name__ == '__main__':
     HDR = HexDumpReader()
     while True:
-        read_data = HDR.read_hexdump()
-        print(read_data)
+        DATA = HDR.read_hexdump()
+        print(DATA)

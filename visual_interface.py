@@ -1,12 +1,12 @@
 """This module contains the visul interface window that displays
 all the gathered and plotted data from the simulator"""
 
+import math
+import time
+
 from tkinter import Tk, Label, Frame, Canvas, PhotoImage, Button, Entry
 from udp_receiver import UDPReceiver
 from hexdumpreader import HexDumpReader
-
-import math
-import time
 
 
 class EnvelopeWindow:
@@ -97,10 +97,10 @@ class EnvelopeWindow:
 
         self.__oldpitch = None
         self.__oldroll = None
-        self.__oldlat = None
-        self.__oldlon = None
+
         self.__oldvelocity = None
         self.__oldload = None
+        self.__oldaoa = None
 
         self.__aoaframe = Canvas(self.__root, width=25, height=300,
                                  borderwidth=4,
@@ -167,15 +167,21 @@ class EnvelopeWindow:
         return
 
     def set_datapoint_limit(self):
+        """set_datapoint_limit is a method that fetches an integer from
+        the entry line and sets it to be the current datapoint limit"""
         try:
+            # if the entry contains a sensible integer, set limit
             self.__maxdatapoints = int(self.__datapt_entry.get())
             self.__setbutton.configure(text="Limit set!", state="disabled")
         except ValueError:
+            # if the entry contains nothing or a weird value, no limit
             self.__setbutton.configure(text="No limit", state="disabled")
-            self.__maxdatapoints = math.inf
+            self.__maxdatapoints = 100000
         return
 
     def __toggle_stop(self):
+        """toggle_stop is a method that raises and lowers
+        the stop-flag that halts plotting datapoints"""
         if self.__stop is True:
             self.__stop = False
             self.__stopbutton.configure(text="Stop", activebackground="red")
@@ -185,16 +191,21 @@ class EnvelopeWindow:
         return
 
     def validate_entry(self, text):
+        """validate_entry is a method that checks every character that is added
+        or removed from the entry line and decides if said character is OK"""
         try:
+            # value change in entry box toggles button disable off
             self.__setbutton.configure(text="Set", state="normal")
         except AttributeError:
             pass
+        # checking every character in proposed entry if they are ok
         for char in text:
             if char in '0123456789':
                 continue
             else:
                 return False
         try:
+            # finally checking if the characters are ok as a whole
             int(text)
             return True
         except ValueError:
@@ -206,7 +217,9 @@ class EnvelopeWindow:
 
         packet = self.__rx.listen_to_port()
         if packet is not None:
+            # display updated values
             self.display_data(packet)
+        # read again soon
         self.__root.after(30, self.listen_udp)
         return
 
@@ -229,7 +242,8 @@ class EnvelopeWindow:
         return
 
     def read_hexdump(self):
-        """Docstring"""
+        """read_hexdump is a method that calls
+        the slave HexDumpReader object's reading method."""
         packet = self.__hdr.read_hexdump()
         if packet:
             self.display_data(packet)
@@ -249,8 +263,6 @@ class EnvelopeWindow:
             self.update_plotframe2(packet)
             self.__oldpitch = packet["PTC"]
             self.__oldroll = packet["ROL"]
-            self.__oldlon = packet["LON"]
-            self.__oldlat = packet["LAT"]
             print("dT of window update:", float(time.time()) - self.__t0)
             self.__t0 = float(time.time())
 
@@ -262,12 +274,12 @@ class EnvelopeWindow:
 
         self.__logframe_contents["values"] \
             .configure(text="%.4f° \n%.4f° \n%.4fft\n%.4f° \n%.4f° "
-                            "\n%.4f° \n%.4f° \n%.4fg \n%.4fkt "
-                            % (packet['LON'], packet["LAT"],
-                               packet["ALT"], packet["ROL"],
-                               packet["PTC"], packet["HDG"],
-                               packet["AOA"], packet["LOA"]/9.80665,
-                               packet["ASP"]),
+                       "\n%.4f° \n%.4f° \n%.4fg \n%.4fkt "
+                       % (packet['LON'], packet["LAT"],
+                          packet["ALT"], packet["ROL"],
+                          packet["PTC"], packet["HDG"],
+                          packet["AOA"], packet["LOA"],
+                          packet["ASP"]),
                        justify="right", bg='white')
         return
 
@@ -275,55 +287,59 @@ class EnvelopeWindow:
         """update_plotframe is a method that updates
         the contents of the AOA-ROLL -graph"""
         scale = 5
+        offset = (300, 500)
         try:
-            self.__plot1_lines.append(self.__plotframe
-                                      .create_line(self.__oldroll*scale+300,
-                                                   self.__oldpitch*-scale+500,
-                                                   packet["ROL"]*scale+300,
-                                                   packet["PTC"]*-scale+500,
-                                                   fill="white"))
+            self.__plot1_lines\
+                .append(self.__plotframe
+                        .create_line(self.__oldroll * scale + offset[0],
+                                     self.__oldaoa * -scale + offset[1],
+                                     packet["ROL"] * scale + offset[0],
+                                     packet["AOA"] * -scale + offset[1],
+                                     fill="white"))
         except TypeError:
             pass
-        dp = packet["PTC"] * -scale
-        dr = packet["ROL"] * scale
-        newxy = [295+dr, 495+dp, 305+dr, 505+dp]
+
+        newxy = [offset[0] - 5 + packet["ROL"] * scale,
+                 offset[1] - 5 + -packet["AOA"] * scale,
+                 offset[0] + 5 + packet["ROL"] * scale,
+                 offset[1] + 5 + -packet["AOA"] * scale]
         self.__plotframe.coords("dot", *newxy)
+
         diff = len(self.__plot1_lines) - self.__maxdatapoints
         if diff > 0:
-            for i in range(0, diff):
+            for _ in range(0, diff):
                 self.__plotframe.delete(self.__plot1_lines[0])
                 self.__plot1_lines.pop(0)
         return
 
     def update_plotframe2(self, packet):
-        try:
-            dlat = self.__oldlat - packet["LAT"]
-            dlon = self.__oldlon - packet["LON"]
-        except TypeError:
-            dlat = 0
-            dlon = 0
-        vlat = (dlat*59.75)/(0.03333/3600)
-        vlon = (dlon * 59.75) / (0.03333 / 3600)
-        vtot = math.sqrt(vlon**2 + vlat**2)
-        scale = 1.2222
+        """update_plotframe2 is a method that updates
+        the contents of the AIRSPD-LOAD -graph"""
+        aspscale = 1.2222
+        loascale = 10
+        offset = (50, 400)
         try:
             self.__plot2_lines\
                 .append(self.__plotframe2
-                        .create_line(self.__oldvelocity * scale + 50,
-                                     self.__oldload*-scale + 400,
-                                     vtot * scale + 50,
-                                     packet["PTC"] * -scale*10 + 400,
+                        .create_line(self.__oldvelocity * aspscale + offset[0],
+                                     self.__oldload * -loascale + offset[1],
+                                     packet["ASP"] * aspscale + offset[0],
+                                     packet["LOA"] * -loascale + offset[1],
                                      fill="white"))
         except TypeError:
             pass
-        self.__oldvelocity = vtot
-        self.__oldload = packet["PTC"]*10
-        dl = packet["PTC"] * -scale*10
-        newxy = [45 + vtot*scale, 395+dl, 55 + vtot*scale, 405+dl]
+        self.__oldvelocity = packet["ASP"]
+        self.__oldload = packet["LOA"]
+
+        newxy = [offset[0]-5 + packet["ASP"] * aspscale,
+                 offset[1]-5 + -packet["LOA"] * loascale,
+                 offset[0]+5 + packet["ASP"] * aspscale,
+                 offset[1]+5 + -packet["LOA"] * loascale]
         self.__plotframe2.coords("dot", *newxy)
+
         diff = len(self.__plot2_lines) - self.__maxdatapoints
         if diff > 0:
-            for i in range(0, diff):
+            for _ in range(0, diff):
                 self.__plotframe2.delete(self.__plot2_lines[0])
                 self.__plot2_lines.pop(0)
         return
@@ -331,13 +347,14 @@ class EnvelopeWindow:
     def update_aoaframe(self, packet):
         """update_aoaframe is a method that updates
         the visual bar graph displaying AOA"""
+        scale = 5  # 5 px/degree --> 30 deg == full bar
         self.__aoaframe.coords("aoabar",
-                               [0, 150, 30, 150, 30, 150-(5*packet["PTC"]), 0,
-                                150-(5*packet["PTC"])])
-        if abs(packet["PTC"]) > 30:
+                               [0, 150, 30, 150, 30, 150-(scale*packet["AOA"]),
+                                0, 150-(scale*packet["AOA"])])
+        if abs(packet["AOA"]) > 30:
             self.__aoaframe.itemconfig("aoabar", fill="#800000")
             return
-        color = hex(abs(int(abs(packet["PTC"]) / 30*255) - 0xff)).lstrip('0')
+        color = hex(abs(int(abs(packet["AOA"]) / 30*255) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
@@ -348,13 +365,15 @@ class EnvelopeWindow:
     def update_loadframe(self, packet):
         """update_loadframe is a method that updates
         the visual bar graph displaying load on wings"""
+        scale = 50  # 50 px/g --> 3g == full bar
         self.__loadframe.coords("loadbar",
-                                [0, 150, 30, 150, 30, 150-(10*packet["PTC"]),
-                                 0, 150-(10*packet["PTC"])])
-        if abs(packet["PTC"]) > 30:
+                                [0, 150, 30, 150, 30,
+                                 150-(scale*packet["LOA"]),
+                                 0, 150-(scale*packet["LOA"])])
+        if abs(packet["LOA"]) > 3:
             self.__loadframe.itemconfig("loadbar", fill="#800000")
             return
-        color = hex(abs(int(abs(packet["PTC"]) / 15*255) - 0xff)).lstrip('0')
+        color = hex(abs(int(abs(packet["LOA"]) / 3*255) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
