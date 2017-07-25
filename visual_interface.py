@@ -95,9 +95,7 @@ class EnvelopeWindow:
         self.__plot1_lines = []
         self.__plot2_lines = []
 
-        self.__oldpitch = None
         self.__oldroll = None
-
         self.__oldvelocity = None
         self.__oldload = None
         self.__oldaoa = None
@@ -237,13 +235,14 @@ class EnvelopeWindow:
             data = data.strip("b'\\n")
             data = data.split(",")
             packet = self.__rx.formatter(data)
-            self.display_data(packet)
+            if packet:
+                self.display_data(packet)
         self.__root.after(30, self.read_log)
         return
 
     def read_hexdump(self):
         """read_hexdump is a method that calls
-        the slave HexDumpReader object's reading method."""
+        the slave HexDumpReader object's reading method"""
         packet = self.__hdr.read_hexdump()
         if packet:
             self.display_data(packet)
@@ -261,8 +260,8 @@ class EnvelopeWindow:
             self.update_inclframe(packet)
             self.update_loadframe(packet)
             self.update_plotframe2(packet)
-            self.__oldpitch = packet["PTC"]
             self.__oldroll = packet["ROL"]
+            self.__oldaoa = packet["AOA"]
             print("dT of window update:", float(time.time()) - self.__t0)
             self.__t0 = float(time.time())
 
@@ -275,7 +274,7 @@ class EnvelopeWindow:
         self.__logframe_contents["values"] \
             .configure(text="%.4f° \n%.4f° \n%.4fft\n%.4f° \n%.4f° "
                        "\n%.4f° \n%.4f° \n%.4fg \n%.4fkt "
-                       % (packet['LON'], packet["LAT"],
+                       % (packet["LON"], packet["LAT"],
                           packet["ALT"], packet["ROL"],
                           packet["PTC"], packet["HDG"],
                           packet["AOA"], packet["LOA"],
@@ -391,13 +390,13 @@ class EnvelopeWindow:
         deg = packet["ROL"]
         rad = (math.pi / 180) * deg
         for i in range(0, 4):
-            x = newxy[i*2]
-            y = newxy[i*2+1]
+            x_coord = newxy[i*2]
+            y_coord = newxy[i*2+1]
             offset = complex(100, 100)
-            v = complex(math.cos(-rad), math.sin(-rad)) * \
-                (complex(x, y) - offset) + offset
-            newxy[i*2] = v.real
-            newxy[i*2+1] = v.imag
+            v_comp = complex(math.cos(-rad), math.sin(-rad)) * \
+                (complex(x_coord, y_coord) - offset) + offset
+            newxy[i*2] = v_comp.real
+            newxy[i*2+1] = v_comp.imag
         self.__inclframe.coords("gnd", *newxy)
         return
 

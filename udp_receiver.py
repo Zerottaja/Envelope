@@ -89,16 +89,19 @@ UDP-port = 4444 # default 4444""")
     @staticmethod
     def formatter(data):
         """formatter() packs udp data into an easily accessible dict packet"""
-        data = str(data)
-        data = data.strip("b'\\n")
-        data = data.split(",")
+        if len(data) > 10:
+            data = str(data)
+            data = data.strip("b'\\n")
+            data = data.split(",")
         packet = dict()
         i = 0
-        for header in ("LON", "LAT", "ALT", "ROL", "PTC", "HDG", "AOA"):
+        for header in ("LON", "LAT", "ALT", "ROL", "PTC",
+                       "HDG", "AOA", "LOA", "ASP"):
             try:
                 packet[header] = float(data[i])
-            except ValueError:
-                print(data[i])
+            except (ValueError, IndexError):
+                print("HM")
+                packet[header] = 0.0
             i += 1
         return packet
 
