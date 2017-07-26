@@ -108,5 +108,5 @@ UDP-port = 4444 # default 4444""")
 if __name__ == '__main__':
     RX = UDPReceiver()
     while True:
-        rx_data = RX.listen_to_port()
-        print(rx_data)
+        RX_DATA = RX.listen_to_port()
+        print(RX_DATA)

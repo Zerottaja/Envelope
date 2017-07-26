@@ -13,14 +13,49 @@ class EnvelopeWindow:
     """EnvelopeWindow is a class that generates a visual presentation of
     a simulator's positional and reactional values"""
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
 
         # Initializing window
         self.__root = Tk()
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
-        # self.__root.geometry('{}x{}'.format(1600, 800))
 
+        self.__init_titles()
+        self.__init_logframe()
+        self.__init_plotframe()
+        self.__init_plotframe2()
+        self.__init_aoaframe()
+        self.__init_loadframe()
+        self.__init_inclframe()
+        self.__maxdatapoints = 3000
+        self.__init_widgets()
+
+        self.__plot1_lines = []
+        self.__plot2_lines = []
+        self.__stop = False
+
+        self.__oldroll = None
+        self.__oldvelocity = None
+        self.__oldload = None
+        self.__oldaoa = None
+
+        self.__rx = UDPReceiver()
+        self.__hdr = HexDumpReader()
+        self.__log = open("capture4.txt", "r")
+        # self.__root.after(100, self.read_log)
+        # self.__root.after(100, self.listen_udp)
+        self.__root.after(100, self.read_hexdump)
+
+        self.__t0 = float(time.time())
+
+        self.__root.mainloop()
+
+        return
+
+    def __init_titles(self):
+        """Docstring"""  # TODO
         Label(self.__root, text="Value log").grid(row=1, column=1,
                                                   columnspan=4)
         Label(self.__root, text="AOA bar", justify="left") \
@@ -37,7 +72,10 @@ class EnvelopeWindow:
         Label(self.__root, height=0).grid(row=5, column=1, columnspan=4)
         Label(self.__root, text="Absolute inclination").grid(row=6, column=1,
                                                              columnspan=4)
+        return
 
+    def __init_logframe(self):
+        """Docstring"""  # TODO
         self.__logframe = Frame(self.__root, borderwidth=4, relief="sunken")
         self.__logframe.grid(row=2, column=1, columnspan=4, sticky="n")
         self.__logframe.grid_propagate(0)
@@ -53,7 +91,10 @@ class EnvelopeWindow:
                     text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
                     justify="right", bg='white')
         self.__logframe_contents["values"].pack(side="right")
+        return
 
+    def __init_plotframe(self):
+        """Docstring"""  # TODO
         self.__plotframe = Canvas(self.__root, height=600, width=600,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
         img = PhotoImage(file="images/graphbg.gif")
@@ -73,10 +114,14 @@ class EnvelopeWindow:
                                      text="Angle of attack (degrees)",
                                      anchor="sw", fill="white")
         self.__plotframe.move("dot", 295, 495)
+        return
 
+    def __init_plotframe2(self):
+        """Docstring"""  # TODO
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
+        img = PhotoImage(file="images/graphbg.gif")
         self.__plotframe2.create_image(0, 0, image=img, anchor="nw")
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         self.__plotframe2.create_line(0, 400, 605, 400, fill="white")
@@ -91,15 +136,10 @@ class EnvelopeWindow:
         self.__plotframe2.create_text(55, 595,
                                       text="G Load (g)",
                                       anchor="sw", fill="white")
+        return
 
-        self.__plot1_lines = []
-        self.__plot2_lines = []
-
-        self.__oldroll = None
-        self.__oldvelocity = None
-        self.__oldload = None
-        self.__oldaoa = None
-
+    def __init_aoaframe(self):
+        """Docstring"""  # TODO
         self.__aoaframe = Canvas(self.__root, width=25, height=300,
                                  borderwidth=4,
                                  relief="sunken", bg="white")
@@ -107,7 +147,10 @@ class EnvelopeWindow:
         self.__aoaframe.create_line(0, 150, 30, 150, fill="black")
         self.__aoaframe.create_polygon(0, 150, 30, 150, 30, 150, 0, 150,
                                        fill="#005a08", tags="aoabar")
+        return
 
+    def __init_loadframe(self):
+        """Docstring"""  # TODO
         self.__loadframe = Canvas(self.__root, width=25, height=300,
                                   borderwidth=4,
                                   relief="sunken", bg="white")
@@ -115,7 +158,10 @@ class EnvelopeWindow:
         self.__loadframe.create_line(0, 150, 30, 150, fill="black")
         self.__loadframe.create_polygon(0, 150, 30, 150, 30, 150, 0, 150,
                                         fill="#005a08", tags="loadbar")
+        return
 
+    def __init_inclframe(self):
+        """Docstring"""  # TODO
         self.__inclframe = Canvas(self.__root, width=200, height=200,
                                   borderwidth=4,
                                   relief="sunken", bg="#9ea9fe")
@@ -130,17 +176,18 @@ class EnvelopeWindow:
             .create_polygon(self.__gndxy, fill="#8c603d", tags="gnd")
         self.__inclframe.lower("gnd")
         self.__inclframe.create_oval(99, 99, 101, 101)
+        return
 
+    def __init_widgets(self):
+        """Docstring"""  # TODO
         self.__stopbutton = Button(self.__root, text="Stop",
                                    command=self.__toggle_stop,
                                    activebackground="red")
         self.__stopbutton.grid(row=8, column=5)
-        self.__stop = False
 
-        Label(self.__root, text="Limit data points to last:")\
+        Label(self.__root, text="Limit data points to last:") \
             .grid(row=8, column=6, sticky="e")
         vcmd = self.__root.register(self.validate_entry)
-        self.__maxdatapoints = 3000
         self.__datapt_entry = Entry(self.__root, validate='key',
                                     validatecommand=(vcmd, '%S'),
                                     justify="right", width=7)
@@ -150,18 +197,6 @@ class EnvelopeWindow:
         self.__setbutton = Button(self.__root, text="Set",
                                   command=self.set_datapoint_limit)
         self.__setbutton.grid(row=8, column=8, sticky="w")
-
-        self.__rx = UDPReceiver()
-        self.__hdr = HexDumpReader()
-        self.__log = open("capture4.txt", "r")
-        # self.__root.after(100, self.read_log)
-        # self.__root.after(100, self.listen_udp)
-        self.__root.after(100, self.read_hexdump)
-
-        self.__t0 = float(time.time())
-
-        self.__root.mainloop()
-
         return
 
     def set_datapoint_limit(self):
