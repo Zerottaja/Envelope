@@ -45,7 +45,7 @@ class EnvelopeWindow:
         self.__oldaoa = None
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
-        # and 2 being pre-recordeed data
+        # and 2 being pre-recorded data
         data_input = 0
         if data_input == 0:
             self.__hdr = HexDumpReader()
