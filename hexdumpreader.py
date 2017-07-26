@@ -43,7 +43,7 @@ class HexDumpReader:
     def formatter(packet):
         """formatter is a method that transforms some units to SI"""
         # LOAD from ft/s^2 to g
-        packet["LOA"] = packet["LOA"] / 3.2808399 / 9.80665
+        packet["LOA"] = -packet["LOA"] / 3.2808399 / 9.80665
         return packet
 
 
