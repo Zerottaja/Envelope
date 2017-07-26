@@ -22,6 +22,7 @@ class EnvelopeWindow:
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
 
+        # initializing all window elements
         self.__init_titles()
         self.__init_logframe()
         self.__init_plotframe()
@@ -29,33 +30,41 @@ class EnvelopeWindow:
         self.__init_aoaframe()
         self.__init_loadframe()
         self.__init_inclframe()
-        self.__maxdatapoints = 3000
-        self.__init_widgets()
 
+        self.__maxdatapoints = 3000
+        # plot lines are stored in lists
         self.__plot1_lines = []
         self.__plot2_lines = []
         self.__stop = False
 
+        self.__init_widgets()
+
+        # previous values of some data are kept track of
         self.__oldroll = None
         self.__oldvelocity = None
         self.__oldload = None
         self.__oldaoa = None
 
+        # initializing inputs
         self.__rx = UDPReceiver()
         self.__hdr = HexDumpReader()
+
         self.__log = open("capture4.txt", "r")
         # self.__root.after(100, self.read_log)
+
         # self.__root.after(100, self.listen_udp)
         self.__root.after(100, self.read_hexdump)
 
         self.__t0 = float(time.time())
 
+        # fire up the rootwindow
         self.__root.mainloop()
 
         return
 
     def __init_titles(self):
-        """Docstring"""  # TODO
+        """init_titles() is a method that creates titles
+        and some strucural elements on the root window"""
         Label(self.__root, text="Value log").grid(row=1, column=1,
                                                   columnspan=4)
         Label(self.__root, text="AOA bar", justify="left") \
@@ -75,7 +84,8 @@ class EnvelopeWindow:
         return
 
     def __init_logframe(self):
-        """Docstring"""  # TODO
+        """init_logframe() is a method that creates
+        a frame for showing flight data values"""
         self.__logframe = Frame(self.__root, borderwidth=4, relief="sunken")
         self.__logframe.grid(row=2, column=1, columnspan=4, sticky="n")
         self.__logframe.grid_propagate(0)
@@ -94,11 +104,12 @@ class EnvelopeWindow:
         return
 
     def __init_plotframe(self):
-        """Docstring"""  # TODO
+        """init_plotframe() is a method that creates
+        a frame for plotting the AOA-ROLL -graph"""
         self.__plotframe = Canvas(self.__root, height=600, width=600,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
-        img = PhotoImage(file="images/graphbg.gif")
-        self.__plotframe.create_image(0, 0, image=img, anchor="nw")
+        self.img = PhotoImage(file="images/graphbg.gif")
+        self.__plotframe.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
                               sticky="n")
         self.__plotframe.grid_propagate(0)
@@ -117,12 +128,12 @@ class EnvelopeWindow:
         return
 
     def __init_plotframe2(self):
-        """Docstring"""  # TODO
+        """init_plotframe2() is a method that creates
+        a frame for plotting the AIRSPEED-LOAD -graph"""
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
-        img = PhotoImage(file="images/graphbg.gif")
-        self.__plotframe2.create_image(0, 0, image=img, anchor="nw")
+        self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         self.__plotframe2.create_line(0, 400, 605, 400, fill="white")
         self.__plotframe2.create_line(50, 0, 50, 605, fill="white")
@@ -139,7 +150,8 @@ class EnvelopeWindow:
         return
 
     def __init_aoaframe(self):
-        """Docstring"""  # TODO
+        """init_aoaframe() is a method that creates
+        a frame and a bar for displaying the ANGLE OF ATTACK"""
         self.__aoaframe = Canvas(self.__root, width=25, height=300,
                                  borderwidth=4,
                                  relief="sunken", bg="white")
@@ -150,7 +162,8 @@ class EnvelopeWindow:
         return
 
     def __init_loadframe(self):
-        """Docstring"""  # TODO
+        """init_aoaframe() is a method that creates
+        a frame and a bar for displaying the LOAD"""
         self.__loadframe = Canvas(self.__root, width=25, height=300,
                                   borderwidth=4,
                                   relief="sunken", bg="white")
@@ -161,11 +174,12 @@ class EnvelopeWindow:
         return
 
     def __init_inclframe(self):
-        """Docstring"""  # TODO
+        """init_inclframe() is a method that creates a frame and a visual
+        horizon for displaying the absolute inclination of the aeroplane"""
         self.__inclframe = Canvas(self.__root, width=200, height=200,
                                   borderwidth=4,
                                   relief="sunken", bg="#9ea9fe")
-        self.__inclframe.grid(row=7, rowspan=2,
+        self.__inclframe.grid(row=7, rowspan=3,
                               column=1, columnspan=4, sticky="n")
         self.__inclframe.create_line(30, 100, 90, 100, fill="black", width=2)
         self.__inclframe.create_line(90, 100, 90, 110, fill="black", width=2)
@@ -179,25 +193,43 @@ class EnvelopeWindow:
         return
 
     def __init_widgets(self):
-        """Docstring"""  # TODO
+        """init_widgets() is a method that creates all utility widgets,
+        such as buttons and entry boxes"""
         self.__stopbutton = Button(self.__root, text="Stop",
                                    command=self.__toggle_stop,
                                    activebackground="red")
         self.__stopbutton.grid(row=8, column=5)
 
+        self.__clearbutton = Button(self.__root, text="Clear",
+                                    command=self.clear_plots,
+                                    activebackground="blue")
+        self.__clearbutton.grid(row=9, column=5)
+
         Label(self.__root, text="Limit data points to last:") \
-            .grid(row=8, column=6, sticky="e")
+            .grid(row=8, rowspan=2, column=6, sticky="e")
         vcmd = self.__root.register(self.validate_entry)
         self.__datapt_entry = Entry(self.__root, validate='key',
                                     validatecommand=(vcmd, '%S'),
                                     justify="right", width=7)
         self.__datapt_entry.insert(-1, self.__maxdatapoints)
-        self.__datapt_entry.grid(row=8, column=7)
+        self.__datapt_entry.grid(row=8, column=7, rowspan=2)
 
         self.__setbutton = Button(self.__root, text="Set",
                                   command=self.set_datapoint_limit)
-        self.__setbutton.grid(row=8, column=8, sticky="w")
+        self.__setbutton.grid(row=8, column=8, rowspan=2, sticky="w")
         return
+
+    def clear_plots(self):
+        """clear_plots is a method that deletes
+        the stored datapoints and lines from the window"""
+        try:
+            while True:
+                self.__plotframe.delete(self.__plot1_lines[0])
+                self.__plotframe2.delete(self.__plot2_lines[0])
+                self.__plot1_lines.pop(0)
+                self.__plot2_lines.pop(0)
+        except IndexError:
+            return
 
     def set_datapoint_limit(self):
         """set_datapoint_limit is a method that fetches an integer from
