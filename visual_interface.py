@@ -46,7 +46,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 0
+        data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__root.after(100, self.read_hexdump)
@@ -76,9 +76,9 @@ class EnvelopeWindow:
             .grid(row=4, column=4, sticky="w")
         Label(self.__root, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__root, text="Envelope plot", justify="right") \
+        Label(self.__root, text="Roll-Angle of Attack plot", justify="right") \
             .grid(row=1, column=5, columnspan=5, sticky="s")
-        Label(self.__root, text="Load plot", justify="right") \
+        Label(self.__root, text="Airspeed-Load plot", justify="right") \
             .grid(row=1, column=11, sticky="s")
         Label(self.__root, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
@@ -149,6 +149,15 @@ class EnvelopeWindow:
         """init_plotframe2() is a method that creates
         a frame for plotting the AIRSPEED-LOAD -graph"""
 
+        # scales
+        aspscale = 1.8333
+        vmo = 259
+        vmm = 181
+        loascale = 100  # 100 px/g --> 4 g/positive halfplot
+        gmp = 3.10
+        gmn = 1.24
+        offset = (50, 400)  # centerpoint offset
+
         # init the frame
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
                                    borderwidth=4, relief="sunken",
@@ -157,22 +166,57 @@ class EnvelopeWindow:
         self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         # plot axis
-        self.__plotframe2.create_line(0, 400, 605, 400, fill="white")
-        self.__plotframe2.create_line(50, 0, 50, 605, fill="white")
+        self.__plotframe2.create_line(0, offset[1], 605, offset[1],
+                                      fill="white")
+        self.__plotframe2.create_line(offset[0], 0, offset[0], 605,
+                                      fill="white")
+
+        # limit lines
+        # never exceed
+        self.__plotframe2.create_line(offset[0] + vmo*aspscale, 0,
+                                      offset[0] + vmo*aspscale, 605,
+                                      fill="red")
+        self.__plotframe2.create_text(offset[0] + vmo*aspscale + 5, 595,
+                                      text="Never\nexceed",
+                                      anchor="sw", fill="red")
+        # max maneuver speed
+        self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
+                                      offset[0] + vmm*aspscale, 605,
+                                      fill="yellow")
+        self.__plotframe2.create_text(offset[0] + vmm*aspscale + 5, 595,
+                                      text="Maneuvering speed",
+                                      anchor="sw", fill="yellow")
+        # max positive load
+        self.__plotframe2.create_line(0, offset[1] - gmp*loascale, 605,
+                                      offset[1] - gmp * loascale,
+                                      fill="red")
+        self.__plotframe2.create_text(595, offset[1] - gmp*loascale - 2,
+                                      text="Max + load",
+                                      anchor="se", fill="red")
+        # max negative load
+        self.__plotframe2.create_line(0, offset[1] + gmn*loascale, 605,
+                                      offset[1] + gmn * loascale,
+                                      fill="red")
+        self.__plotframe2.create_text(595, offset[1] + gmn*loascale - 2,
+                                      text="Max - load",
+                                      anchor="se", fill="red")
+
         # origin dot
-        self.__plotframe2.create_oval(48, 398, 52, 402, fill="white",
+        self.__plotframe2.create_oval(offset[0]-2, offset[1]-2,
+                                      offset[0]+2, offset[1]+2, fill="white",
                                       tags="origin")
         # moving target dot
         self.__plotframe2.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                       tags="dot")
         # axis legend
-        self.__plotframe2.create_text(595, 398, text="Air velocity (knots)",
+        self.__plotframe2.create_text(595, offset[1]-2,
+                                      text="Air velocity (knots)",
                                       anchor="se", fill="white")
-        self.__plotframe2.create_text(55, 595,
-                                      text="G Load (g)",
+        self.__plotframe2.create_text(offset[0]+5, 595,
+                                      text="G load (g)",
                                       anchor="sw", fill="white")
         # init the target dot to origin
-        self.__plotframe2.move("dot", 45, 395)
+        self.__plotframe2.move("dot", 45, offset[1]-5)
         return
 
     def __init_aoaframe(self):

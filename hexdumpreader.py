@@ -50,7 +50,7 @@ class HexDumpReader:
 ###############################################################################
 # sudo tshark -Y "ip.src == 192.9.200.155 and tcp.len == 1024
 # and data.data[2] == 21" -Eheader=n -Tfields -e data.data
-# > /home/samu/PycharmProjects/Envelope/packet_fifo
+# > <WORK_DIRECTORY>/packet_fifo
 ###############################################################################
 if __name__ == '__main__':
     HDR = HexDumpReader()
