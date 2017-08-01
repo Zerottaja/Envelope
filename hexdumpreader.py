@@ -2,6 +2,8 @@
 
 import struct
 
+from timeout import timeout
+
 
 class HexDumpReader:
     """HexDumpReader is a class that reads a line from a FIFO-pipe and
@@ -9,19 +11,26 @@ class HexDumpReader:
 
     def __init__(self):
         try:
-            self.__file = open("packet_fifo")
+            print("opening")
+            self.__file = open("packet_fifo",)
+            print("opened")
         except FileNotFoundError as err:
             print(err)
         return
 
+    @timeout(0.02)
     def read_hexdump(self):
         """read_hexdump() method fetches a new line from the pipe, strips away
         the delimiters and assigns predefined slots of data to variables"""
+        print("reading")
         data = self.__file.readline()
+        print(data)
         if data != "":
+            print("data valid")
             data = data.replace(':', '')
         else:
             return
+        print("packaging")
         packet = dict()
         try:
             for header, arg, subdata in (("ROL", '!f', data[48:56]),
@@ -55,5 +64,8 @@ class HexDumpReader:
 if __name__ == '__main__':
     HDR = HexDumpReader()
     while True:
-        DATA = HDR.read_hexdump()
-        print(DATA)
+        try:
+            DATA = HDR.read_hexdump()
+            print(DATA)
+        except TimeoutError:
+            print("timeout")

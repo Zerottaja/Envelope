@@ -46,7 +46,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 1
+        data_input = 0
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__root.after(100, self.read_hexdump)
@@ -153,6 +153,7 @@ class EnvelopeWindow:
         aspscale = 1.8333
         vmo = 259
         vmm = 181
+        nss = 85
         loascale = 100  # 100 px/g --> 4 g/positive halfplot
         gmp = 3.10
         gmn = 1.24
@@ -172,20 +173,27 @@ class EnvelopeWindow:
                                       fill="white")
 
         # limit lines
-        # never exceed
+        # max operating speed
         self.__plotframe2.create_line(offset[0] + vmo*aspscale, 0,
                                       offset[0] + vmo*aspscale, 605,
                                       fill="red")
         self.__plotframe2.create_text(offset[0] + vmo*aspscale + 5, 595,
-                                      text="Never\nexceed",
+                                      text="Max\noperating\nspeed",
+                                      anchor="sw", fill="red")
+        # normal stall speed
+        self.__plotframe2.create_line(offset[0] + nss * aspscale, 0,
+                                      offset[0] + nss * aspscale, 605,
+                                      fill="red")
+        self.__plotframe2.create_text(offset[0] + nss * aspscale + 5, 595,
+                                      text="Normal stall speed",
                                       anchor="sw", fill="red")
         # max maneuver speed
         self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
                                       offset[0] + vmm*aspscale, 605,
-                                      fill="yellow")
+                                      fill="green", dash=4)
         self.__plotframe2.create_text(offset[0] + vmm*aspscale + 5, 595,
                                       text="Maneuvering speed",
-                                      anchor="sw", fill="yellow")
+                                      anchor="sw", fill="green")
         # max positive load
         self.__plotframe2.create_line(0, offset[1] - gmp*loascale, 605,
                                       offset[1] - gmp * loascale,
@@ -200,6 +208,18 @@ class EnvelopeWindow:
         self.__plotframe2.create_text(595, offset[1] + gmn*loascale - 2,
                                       text="Max - load",
                                       anchor="se", fill="red")
+        old_y = 0
+        x = 0
+        while x < 501:
+            y = 0.001661882*(x**2) + 0.3827509917*x
+            self.__plotframe2.create_line(offset[0]+x-10, offset[1]-old_y,
+                                          offset[0]+x, offset[1]-y, fill="red")
+            old_y = y
+            x += 10
+
+        self.__plotframe2.create_line(0, offset[1] - 1*loascale, 605,
+                                      offset[1] - 1*loascale,
+                                      fill="green", dash=4)
 
         # origin dot
         self.__plotframe2.create_oval(offset[0]-2, offset[1]-2,
@@ -216,7 +236,7 @@ class EnvelopeWindow:
                                       text="G load (g)",
                                       anchor="sw", fill="white")
         # init the target dot to origin
-        self.__plotframe2.move("dot", 45, offset[1]-5)
+        self.__plotframe2.move("dot", offset[0]-5, offset[1]-5)
         return
 
     def __init_aoaframe(self):
@@ -416,10 +436,13 @@ class EnvelopeWindow:
         the slave HexDumpReader object's reading method"""
 
         # get the package from HexDumpReader
-        packet = self.__hdr.read_hexdump()
+        try:
+            packet = self.__hdr.read_hexdump()
+            if packet:
+                self.display_data(packet)
+        except TimeoutError:
+            print("timeout yay!")
         # and if the package is not null, display the data
-        if packet:
-            self.display_data(packet)
         # read again soon
         self.__root.after(100, self.read_hexdump)
         return
