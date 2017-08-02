@@ -18,19 +18,15 @@ class HexDumpReader:
             print(err)
         return
 
-    @timeout(0.02)
+    @timeout()
     def read_hexdump(self):
         """read_hexdump() method fetches a new line from the pipe, strips away
         the delimiters and assigns predefined slots of data to variables"""
-        print("reading")
         data = self.__file.readline()
-        print(data)
-        if data != "":
-            print("data valid")
+        if data != "" and data[-1] == "\n" and len(data) == 3072:
             data = data.replace(':', '')
         else:
             return
-        print("packaging")
         packet = dict()
         try:
             for header, arg, subdata in (("ROL", '!f', data[48:56]),
@@ -59,7 +55,7 @@ class HexDumpReader:
 ###############################################################################
 # sudo tshark -Y "ip.src == 192.9.200.155 and tcp.len == 1024
 # and data.data[2] == 21" -Eheader=n -Tfields -e data.data
-# > <WORK_DIRECTORY>/packet_fifo
+# > packet_fifo
 ###############################################################################
 if __name__ == '__main__':
     HDR = HexDumpReader()
@@ -68,4 +64,4 @@ if __name__ == '__main__':
             DATA = HDR.read_hexdump()
             print(DATA)
         except TimeoutError:
-            print("timeout")
+            continue
