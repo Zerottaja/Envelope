@@ -29,16 +29,15 @@ class HexDumpReader:
             return
         packet = dict()
         try:
-            for header, arg, subdata in (("ROL", '!f', data[48:56]),
-                                         ("PTC", '!f', data[72:80]),
-                                         ("HDG", '!f', data[96:104]),
-                                         ("AOA", '!f', data[120:128]),
-                                         ("ASP", '!f', data[144:152]),
-                                         ("LOA", '!f', data[168:176]),
-                                         ("LAT", '>d', data[184:200]),
-                                         ("LON", '>d', data[208:224]),
-                                         ("ALT", '!f', data[240:248])):
-                packet[header] = struct.unpack(arg, bytes.fromhex(subdata))[0]
+            for header, subdata in (("ROL", data[1560:1568]),
+                                    ("PTC", data[1584:1592]),
+                                    ("HDG", data[1608:1616]),
+                                    ("AOA", data[1632:1640]),
+                                    ("SDS", data[1656:1664]),
+                                    ("ASP", data[1680:1688]),
+                                    ("LOA", data[1704:1712]),
+                                    ("FLP", data[1728:1736])):
+                packet[header] = struct.unpack('!f', bytes.fromhex(subdata))[0]
         except struct.error:
             pass
         packet = self.formatter(packet)
@@ -57,11 +56,14 @@ class HexDumpReader:
 # and data.data[2] == 21" -Eheader=n -Tfields -e data.data
 # > packet_fifo
 ###############################################################################
+# ip.src == 192.9.200.155 and tcp.len == 1024 and (data.data[2] == 11)
+###############################################################################
 if __name__ == '__main__':
     HDR = HexDumpReader()
     while True:
         try:
             DATA = HDR.read_hexdump()
-            print(DATA)
+            if DATA is not None:
+                print(DATA)
         except TimeoutError:
             continue

@@ -100,7 +100,6 @@ UDP-port = 4444 # default 4444""")
             try:
                 packet[header] = float(data[i])
             except (ValueError, IndexError):
-                print("HM")
                 packet[header] = 0.0
             i += 1
         return packet

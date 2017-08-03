@@ -101,14 +101,14 @@ class EnvelopeWindow:
         # headers for values
         self.__logframe_contents["headers"] \
             = Label(self.__logframe,
-                    text="LON:\t\nLAT:\t\nALT:\t\nROLL:\t\nPITCH:\t"
-                         "\nHDG:\t\nAOA:\t\nLOAD:\t\nAIRSPD:\t",
+                    text="ROLL:\t\nPITCH:\t\nHDG:\t\nAOA:\t\n"
+                         "SIDESLP:\t\nLOAD:\t\nAIRSPD:\t\nFLAPS:\t",
                     justify="left", bg='white')
         self.__logframe_contents["headers"].pack(side="left")
         # default values before receiving data are "n/a"
         self.__logframe_contents["values"] \
             = Label(self.__logframe,
-                    text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
+                    text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
                     justify="right", bg='white')
         self.__logframe_contents["values"].pack(side="right")
         return
@@ -444,7 +444,7 @@ class EnvelopeWindow:
             print("timeout yay!")
         # and if the package is not null, display the data
         # read again soon
-        self.__root.after(100, self.read_hexdump)
+        self.__root.after(200, self.read_hexdump)
         return
 
     def display_data(self, packet):
@@ -473,13 +473,12 @@ class EnvelopeWindow:
 
         # use package data to update contents
         self.__logframe_contents["values"] \
-            .configure(text="%.4f° \n%.4f° \n%.4fft\n%.4f° \n%.4f° "
-                       "\n%.4f° \n%.4f° \n%.4fg \n%.4fkt "
-                       % (packet["LON"], packet["LAT"],
-                          packet["ALT"], packet["ROL"],
-                          packet["PTC"], packet["HDG"],
-                          packet["AOA"], packet["LOA"],
-                          packet["ASP"]),
+            .configure(text="%.2f° \n%.2f° \n%.2f° \n"
+                            "%.2f° \n%.2f° \n%.2fg \n"
+                            "%.2fkt\n%.2f° "
+                       % (packet["ROL"], packet["PTC"], packet["HDG"],
+                          packet["AOA"], packet["SDS"], packet["LOA"],
+                          packet["ASP"], packet["FLP"],),
                        justify="right", bg='white')
         return
 
