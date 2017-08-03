@@ -9,9 +9,9 @@ class AnalogInputReader:
     transforms the voltages into control data."""
 
     def __init__(self):
-        self.ele = MCP3008(channel=1)
-        self.ail = MCP3008(channel=2)
-        self.rud = MCP3008(channel=3)
+            self.ele = MCP3008(channel=1)
+            self.ail = MCP3008(channel=2)
+            self.rud = MCP3008(channel=3)
 
     def read_analog(self):
         """read_analog() gets the values of the input pins
@@ -27,11 +27,14 @@ class AnalogInputReader:
     def formatter(packet):
         """formatter() transforms the input voltages into control data."""
 
+        pass  # TODO formatter
+
         return packet
 
 
 if __name__ == '__main__':
     AIR = AnalogInputReader()
-    AIR_DATA = AIR.read_analog()
-    if AIR_DATA:
-        print(AIR_DATA)
+    while True:
+        AIR_DATA = AIR.read_analog()
+        if AIR_DATA:
+            print(AIR_DATA)
