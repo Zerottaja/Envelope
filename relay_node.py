@@ -27,8 +27,10 @@ class RelayNode:
         except TimeoutError:
             tcp_packet = self.__old_packet
         analog_packet = self.AIR.read_analog()
-        packet = {**tcp_packet, **analog_packet}
-        csv_string = self.formatter(packet)
+        for header in tcp_packet:
+            analog_packet[header] = tcp_packet[header]
+        # packet = {**tcp_packet, **analog_packet}
+        csv_string = self.formatter(analog_packet)
 
         return csv_string
 
