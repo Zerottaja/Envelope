@@ -21,6 +21,7 @@ class EnvelopeWindow:
         self.__root = Tk()
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
+        self.__root.geometry("1366x768")
 
         # datapoints (plot lines) are stored in lists
         self.__maxdatapoints = 3000
@@ -123,14 +124,14 @@ class EnvelopeWindow:
         """init_plotframe() is a method that creates
         a frame for plotting the AOA-ROLL -graph"""
 
-        offset = (300, 400)
-        aoascale = 14  # 16 px/degree --> 25 degrees/positive halfplot
+        offset = (250, 350)
+        aoascale = 11.67  # 11.67 px/degree --> 30 degrees/positive halfplot
         rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
         aoa_mp = 20  # max positive aoa
         aoa_mn = 12  # max negative aoa
 
         # init the frame
-        self.__plotframe = Canvas(self.__root, height=600, width=600,
+        self.__plotframe = Canvas(self.__root, height=500, width=500,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
         self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
                               sticky="n")
@@ -139,9 +140,9 @@ class EnvelopeWindow:
         self.__plotframe.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe.grid_propagate(0)
         # plot axis
-        self.__plotframe.create_line(offset[0], 0, offset[0], 605,
+        self.__plotframe.create_line(offset[0], 0, offset[0], 505,
                                      fill="white")
-        self.__plotframe.create_line(0, offset[1], 605, offset[1],
+        self.__plotframe.create_line(0, offset[1], 505, offset[1],
                                      fill="white")
         # origin dot
         self.__plotframe.create_oval(offset[0]-2, offset[1]-2,
@@ -153,22 +154,22 @@ class EnvelopeWindow:
         # axis legend
         self.__plotframe.create_text(10, offset[1]-2, text="Roll (degrees)",
                                      anchor="sw", fill="white")
-        self.__plotframe.create_text(offset[0]+5, 595,
+        self.__plotframe.create_text(offset[0]+5, 495,
                                      text="Angle of attack (degrees)",
                                      anchor="sw", fill="white")
         # limit lines
         # max positive aoa
-        self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 605,
+        self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 505,
                                      offset[1] - aoa_mp * aoascale,
                                      fill="red")
-        self.__plotframe.create_text(595, offset[1] - aoa_mp * aoascale - 2,
+        self.__plotframe.create_text(495, offset[1] - aoa_mp * aoascale - 2,
                                      text="Max + AOA",
                                      anchor="se", fill="red")
         # max negative aoa
-        self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 605,
+        self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 505,
                                      offset[1] + aoa_mn * aoascale,
                                      fill="red")
-        self.__plotframe.create_text(595, offset[1] + aoa_mn * aoascale - 2,
+        self.__plotframe.create_text(495, offset[1] + aoa_mn * aoascale - 2,
                                      text="Max - AOA",
                                      anchor="se", fill="red")
         # init the target dot to origin
@@ -180,17 +181,17 @@ class EnvelopeWindow:
         a frame for plotting the AIRSPEED-LOAD -graph"""
 
         # scales
-        aspscale = 1.8333  # 1.83 px/kt --> 300 kts/positive halfplot
+        aspscale = 1.5  # 1.5 px/kt --> 300 kts/positive halfplot
         vmo = 259  # max operating speed
         vmm = 181  # vmm maneuvering speed
         nss = 85  # normal stall speed
-        loascale = 100  # 100 px/g --> 4 g/positive halfplot
+        loascale = 87.5  # 87.5 px/g --> 4 g/positive halfplot
         gmp = 3.10  # max positive load
         gmn = 1.24  # max negative load
-        offset = (50, 400)  # centerpoint offset
+        offset = (50, 350)  # centerpoint offset
 
         # init the frame
-        self.__plotframe2 = Canvas(self.__root, height=600, width=600,
+        self.__plotframe2 = Canvas(self.__root, height=500, width=500,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
@@ -207,35 +208,35 @@ class EnvelopeWindow:
         self.__plotframe2.create_line(offset[0] + vmo*aspscale, 0,
                                       offset[0] + vmo*aspscale, 605,
                                       fill="red")
-        self.__plotframe2.create_text(offset[0] + vmo*aspscale + 5, 595,
+        self.__plotframe2.create_text(offset[0] + vmo*aspscale + 5, 495,
                                       text="Max\noperating\nspeed",
                                       anchor="sw", fill="red")
         # normal stall speed
         self.__plotframe2.create_line(offset[0] + nss * aspscale, 0,
                                       offset[0] + nss * aspscale, 605,
                                       fill="red")
-        self.__plotframe2.create_text(offset[0] + nss * aspscale + 5, 595,
+        self.__plotframe2.create_text(offset[0] + nss * aspscale + 5, 495,
                                       text="Normal stall speed",
                                       anchor="sw", fill="red")
         # max maneuver speed
         self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
                                       offset[0] + vmm*aspscale, 605,
                                       fill="green", dash=4)
-        self.__plotframe2.create_text(offset[0] + vmm*aspscale + 5, 595,
+        self.__plotframe2.create_text(offset[0] + vmm*aspscale + 5, 495,
                                       text="Maneuvering speed",
                                       anchor="sw", fill="green")
         # max positive load
         self.__plotframe2.create_line(0, offset[1] - gmp*loascale, 605,
                                       offset[1] - gmp * loascale,
                                       fill="red")
-        self.__plotframe2.create_text(595, offset[1] - gmp*loascale - 2,
+        self.__plotframe2.create_text(495, offset[1] - gmp*loascale - 2,
                                       text="Max + load",
                                       anchor="se", fill="red")
         # max negative load
         self.__plotframe2.create_line(0, offset[1] + gmn*loascale, 605,
                                       offset[1] + gmn * loascale,
                                       fill="red")
-        self.__plotframe2.create_text(595, offset[1] + gmn*loascale - 2,
+        self.__plotframe2.create_text(495, offset[1] + gmn*loascale - 2,
                                       text="Max - load",
                                       anchor="se", fill="red")
         old_y = 0
