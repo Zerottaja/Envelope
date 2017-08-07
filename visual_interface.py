@@ -123,6 +123,12 @@ class EnvelopeWindow:
         """init_plotframe() is a method that creates
         a frame for plotting the AOA-ROLL -graph"""
 
+        offset = (300, 400)
+        aoascale = 14  # 16 px/degree --> 25 degrees/positive halfplot
+        rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
+        aoa_mp = 20  # max positive aoa
+        aoa_mn = 12  # max negative aoa
+
         # init the frame
         self.__plotframe = Canvas(self.__root, height=600, width=600,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
@@ -133,22 +139,40 @@ class EnvelopeWindow:
         self.__plotframe.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe.grid_propagate(0)
         # plot axis
-        self.__plotframe.create_line(300, 0, 300, 605, fill="white")
-        self.__plotframe.create_line(0, 500, 605, 500, fill="white")
+        self.__plotframe.create_line(offset[0], 0, offset[0], 605,
+                                     fill="white")
+        self.__plotframe.create_line(0, offset[1], 605, offset[1],
+                                     fill="white")
         # origin dot
-        self.__plotframe.create_oval(298, 498, 302, 502, fill="white",
+        self.__plotframe.create_oval(offset[0]-2, offset[1]-2,
+                                     offset[0]+2, offset[1]+2, fill="white",
                                      tags="origin")
         # moving target dot
         self.__plotframe.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                      tags="dot")
         # axis legend
-        self.__plotframe.create_text(10, 498, text="Roll (degrees)",
+        self.__plotframe.create_text(10, offset[1]-2, text="Roll (degrees)",
                                      anchor="sw", fill="white")
-        self.__plotframe.create_text(305, 595,
+        self.__plotframe.create_text(offset[0]+5, 595,
                                      text="Angle of attack (degrees)",
                                      anchor="sw", fill="white")
+        # limit lines
+        # max positive aoa
+        self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 605,
+                                     offset[1] - aoa_mp * aoascale,
+                                     fill="red")
+        self.__plotframe.create_text(595, offset[1] - aoa_mp * aoascale - 2,
+                                     text="Max + AOA",
+                                     anchor="se", fill="red")
+        # max negative aoa
+        self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 605,
+                                     offset[1] + aoa_mn * aoascale,
+                                     fill="red")
+        self.__plotframe.create_text(595, offset[1] + aoa_mn * aoascale - 2,
+                                     text="Max - AOA",
+                                     anchor="se", fill="red")
         # init the target dot to origin
-        self.__plotframe.move("dot", 295, 495)
+        self.__plotframe.move("dot", offset[0]-5, offset[1]-5)
         return
 
     def __init_plotframe2(self):
@@ -156,13 +180,13 @@ class EnvelopeWindow:
         a frame for plotting the AIRSPEED-LOAD -graph"""
 
         # scales
-        aspscale = 1.8333
-        vmo = 259
-        vmm = 181
-        nss = 85
+        aspscale = 1.8333  # 1.83 px/kt --> 300 kts/positive halfplot
+        vmo = 259  # max operating speed
+        vmm = 181  # vmm maneuvering speed
+        nss = 85  # normal stall speed
         loascale = 100  # 100 px/g --> 4 g/positive halfplot
-        gmp = 3.10
-        gmn = 1.24
+        gmp = 3.10  # max positive load
+        gmn = 1.24  # max negative load
         offset = (50, 400)  # centerpoint offset
 
         # init the frame
@@ -555,9 +579,9 @@ class EnvelopeWindow:
         """update_plotframe is a method that updates
         the contents of the AOA-ROLL -graph"""
 
-        aoascale = 15  # 15 px/degree --> 33 degrees/positive halfplot
+        aoascale = 14  # 14 px/degree --> 28.6 degrees/positive halfplot
         rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
-        offset = (300, 500)  # centerpoint offset
+        offset = (300, 400)  # centerpoint offset
         try:
             # create a line from old datapoint to new one
             self.__plot1_lines\
