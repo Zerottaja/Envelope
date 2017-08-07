@@ -36,6 +36,8 @@ class EnvelopeWindow:
         self.__init_aoaframe()
         self.__init_loadframe()
         self.__init_inclframe()
+        self.__init_controlframes()
+        self.__init_sdslpframe()
         self.__init_widgets()
 
         # previous values of some data are kept track of
@@ -46,7 +48,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 0
+        data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__root.after(100, self.read_hexdump)
@@ -84,6 +86,10 @@ class EnvelopeWindow:
             .grid(row=4, column=1, sticky="e")
         Label(self.__root, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
+        Label(self.__root, text="Control position") \
+            .grid(row=8, column=11)
+        Label(self.__root, text="Sideslip") \
+            .grid(row=8, column=5, columnspan=5)
         # empty labels as structural dividers
         Label(self.__root, height=0).grid(row=3, column=1, columnspan=4)
         Label(self.__root, height=0).grid(row=5, column=1, columnspan=4)
@@ -120,11 +126,11 @@ class EnvelopeWindow:
         # init the frame
         self.__plotframe = Canvas(self.__root, height=600, width=600,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
+        self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
+                              sticky="n")
         # nice little fade to black on the background
         self.img = PhotoImage(file="images/graphbg.gif")
         self.__plotframe.create_image(0, 0, image=self.img, anchor="nw")
-        self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
-                              sticky="n")
         self.__plotframe.grid_propagate(0)
         # plot axis
         self.__plotframe.create_line(300, 0, 300, 605, fill="white")
@@ -163,9 +169,9 @@ class EnvelopeWindow:
         self.__plotframe2 = Canvas(self.__root, height=600, width=600,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
+        self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         # nice little fade to black on the background
         self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
-        self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         # plot axis
         self.__plotframe2.create_line(0, offset[1], 605, offset[1],
                                       fill="white")
@@ -279,7 +285,7 @@ class EnvelopeWindow:
         self.__inclframe = Canvas(self.__root, width=200, height=200,
                                   borderwidth=4,
                                   relief="sunken", bg="#9ea9fe")
-        self.__inclframe.grid(row=7, rowspan=3,
+        self.__inclframe.grid(row=7, rowspan=6,
                               column=1, columnspan=4, sticky="n")
         # create the crossbar
         self.__inclframe.create_line(30, 100, 90, 100, fill="black", width=2)
@@ -296,6 +302,67 @@ class EnvelopeWindow:
         self.__inclframe.lower("gnd")
         return
 
+    def __init_controlframes(self):
+        """init_controlframe is a method that creates two frames
+        that indicate current controls position."""
+
+        offset1 = (200, 75)
+        offset2 = (200, 14)
+
+        # init the 1st frame
+        self.__controlframe1 = Canvas(self.__root, width=400, height=150,
+                                      borderwidth=4,
+                                      relief="sunken", bg="#0f228b")
+        self.__controlframe1.grid(row=9, rowspan=4, column=11, columnspan=3)
+
+        self.__controlframe1.create_line(0, 75, 405, 75, fill="white")
+        self.__controlframe1.create_line(200, 0, 200, 155, fill="white")
+
+        # origin dot
+        self.__controlframe1.create_oval(offset1[0] - 2, offset1[1] - 2,
+                                         offset1[0] + 2, offset1[1] + 2,
+                                         fill="white",
+                                         tags="origin")
+        # moving target dot
+        self.__controlframe1.create_oval(offset1[0] - 5, offset1[1] - 5,
+                                         offset1[0] + 5, offset1[1] + 5,
+                                         fill="red", outline="red", tags="dot")
+
+        # init the 2nd frame
+        self.__controlframe2 = Canvas(self.__root, width=400, height=20,
+                                      borderwidth=4,
+                                      relief="sunken", bg="#0f228b")
+        self.__controlframe2.grid(row=13, column=11, columnspan=3)
+        # axis
+        self.__controlframe2.create_line(200, 0, 200, 25, fill="white")
+        # moving target dot
+        self.__controlframe2\
+            .create_polygon(offset2[0]-8, offset2[1], offset2[0], offset2[1]-8,
+                            offset2[0]+8, offset2[1], offset2[0], offset2[1]+8,
+                            fill="red", outline="red", tags="diamond")
+
+        return
+
+    def __init_sdslpframe(self):
+        """init_sdslpframe is a method that creates
+        a frame to indicate ship's sideslip."""
+
+        offset = (200, 14)
+
+        # init the frame
+        self.__sdslpframe = Canvas(self.__root, width=400, height=20,
+                                   borderwidth=4,
+                                   relief="sunken", bg="#0f228b")
+        self.__sdslpframe.grid(row=9, column=5, columnspan=5)
+        # axis
+        self.__sdslpframe.create_line(200, 0, 200, 25, fill="white")
+        # moving target dot
+        self.__sdslpframe\
+            .create_polygon(offset[0]-8, offset[1], offset[0], offset[1]-8,
+                            offset[0]+8, offset[1], offset[0], offset[1]+8,
+                            fill="red", outline="red", tags="diamond")
+        return
+
     def __init_widgets(self):
         """init_widgets() is a method that creates all utility widgets,
         such as buttons and entry boxes"""
@@ -304,17 +371,17 @@ class EnvelopeWindow:
         self.__stopbutton = Button(self.__root, text="Stop",
                                    command=self.__toggle_stop,
                                    activebackground="red")
-        self.__stopbutton.grid(row=8, column=5)
+        self.__stopbutton.grid(row=10, column=5)
 
         # create a clear button and assign command
         self.__clearbutton = Button(self.__root, text="Clear",
                                     command=self.clear_plots,
                                     activebackground="blue")
-        self.__clearbutton.grid(row=9, column=5)
+        self.__clearbutton.grid(row=11, column=5)
 
         # create a text label describing the purpose of the entry box
         Label(self.__root, text="Limit data points to last:") \
-            .grid(row=8, rowspan=2, column=6, sticky="e")
+            .grid(row=10, rowspan=2, column=6, sticky="e")
         # bind the variable vcmd to a method call for validation
         vcmd = self.__root.register(self.validate_entry)
         # create an entrybox for changing the maximum datapoint limit
@@ -323,12 +390,12 @@ class EnvelopeWindow:
                     justify="right", width=7)
         # default value for entrybox is 3000
         self.__datapt_entry.insert(-1, self.__maxdatapoints)
-        self.__datapt_entry.grid(row=8, column=7, rowspan=2)
+        self.__datapt_entry.grid(row=10, column=7, rowspan=2)
 
         # create a set button for the datapoint limit and assign command
         self.__setbutton = Button(self.__root, text="Set",
                                   command=self.set_datapoint_limit)
-        self.__setbutton.grid(row=8, column=8, rowspan=2, sticky="w")
+        self.__setbutton.grid(row=10, column=8, rowspan=2, sticky="w")
         return
 
     def clear_plots(self):
@@ -460,6 +527,8 @@ class EnvelopeWindow:
             self.update_inclframe(packet)
             self.update_loadframe(packet)
             self.update_plotframe2(packet)
+            self.update_controlframes(packet)
+            self.update_sdslpframe(packet)
             self.__oldroll = packet["ROL"]
             self.__oldaoa = packet["AOA"]
 
@@ -645,6 +714,50 @@ class EnvelopeWindow:
             newxy[i*2+1] = v_comp.imag
         # apply the newly calculated coordinates
         self.__inclframe.coords("gnd", *newxy)
+        return
+
+    def update_controlframes(self, packet):
+        """Docstring"""  # TODO docs, comments
+
+        offset1 = (200, 75)
+        offset2 = (200, 14)
+        ailscale = 10  # n px/XXX --> n XXX/positive halfplot
+        elescale = 10  # n px/XXX --> n XXX/positive halfplot
+        rudscale = 10  # n px/XXX --> n XXX/positive halfplot
+
+        # calculate new coordinates for traget dot
+        newxy = [offset1[0]-5 + packet["AIL"] * ailscale,
+                 offset1[1]-5 + -packet["ELE"] * elescale,
+                 offset1[0]+5 + packet["AIL"] * ailscale,
+                 offset1[1]+5 + -packet["ELE"] * elescale]
+        # move the target dot
+        self.__controlframe1.coords("dot", *newxy)
+        self.__controlframe1.lift("dot")
+
+        # calculate new coordinates for the rudder diamond
+        newxy = [offset2[0] - 8 + packet["RUD"] * rudscale, offset2[1],
+                 offset2[0] + packet["RUD"] * rudscale, offset2[1] - 8,
+                 offset2[0] + 8 + packet["RUD"] * rudscale, offset2[1],
+                 offset2[0] + packet["RUD"] * rudscale, offset2[1] + 8]
+        # move the rudder diamond
+        self.__controlframe2.coords("diamond", *newxy)
+        self.__controlframe2.lift("diamond")
+        return
+
+    def update_sdslpframe(self, packet):
+        """Docstring"""  # TODO docs, comments
+
+        offset = (200, 14)
+        scale = 13.3333  # 13.33 px/degree --> 15 degrees/positive halfplot
+
+        # calculate new coordinates for the target diamond
+        newxy = [offset[0]-8 + packet["SDS"]*scale, offset[1],
+                 offset[0] + packet["SDS"]*scale, offset[1]-8,
+                 offset[0]+8 + packet["SDS"]*scale, offset[1],
+                 offset[0] + packet["SDS"]*scale, offset[1]+8]
+        # move the target diamond
+        self.__sdslpframe.coords("diamond", *newxy)
+        self.__sdslpframe.lift("diamond")
         return
 
 if __name__ == '__main__':
