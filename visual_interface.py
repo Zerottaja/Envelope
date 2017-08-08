@@ -51,7 +51,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 1
+        data_input = 0
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__baseframe.after(100, self.read_hexdump)
@@ -129,7 +129,7 @@ class EnvelopeWindow:
 
         offset = (250, 350)
         aoascale = 11.67  # 11.67 px/degree --> 30 degrees/positive halfplot
-        # rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
+        rollscale = 4.16666  # 4.167 px/degree --> 60 degrees/positive halfplot
         aoa_mp = 20  # max positive aoa
         aoa_mn = 12  # max negative aoa
 
@@ -142,6 +142,20 @@ class EnvelopeWindow:
         self.img = PhotoImage(file="images/graphbg.gif")
         self.__plotframe.create_image(0, 0, image=self.img, anchor="nw")
         self.__plotframe.grid_propagate(0)
+        # unit markers
+        for deg in range(-4, 6):
+            deg *= 5
+            self.__plotframe.create_line(0, offset[1] - deg * aoascale, 505,
+                                         offset[1] - deg * aoascale, dash=4)
+            self.__plotframe.create_text(40, offset[1] - deg * aoascale - 2,
+                                         text="{}".format(deg), anchor="se")
+        for deg in range(-5, 6):
+            deg *= 10
+            self.__plotframe.create_line(offset[0] + deg * rollscale, 0,
+                                         offset[0] + deg * rollscale, 605,
+                                         dash=4)
+            self.__plotframe.create_text(offset[0] + deg * rollscale + 5, 465,
+                                         text="{}".format(deg), anchor="sw")
         # plot axis
         self.__plotframe.create_line(offset[0], 0, offset[0], 505,
                                      fill="white")
@@ -200,6 +214,19 @@ class EnvelopeWindow:
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
         # nice little fade to black on the background
         self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
+        # unit markers
+        for loa in range(-2, 5):
+            self.__plotframe2.create_line(0, offset[1] - loa * loascale, 505,
+                                          offset[1] - loa * loascale, dash=4)
+            self.__plotframe2.create_text(40, offset[1] - loa * loascale - 2,
+                                          text="{}".format(loa), anchor="se")
+        for spd in range(0, 6):
+            spd *= 50
+            self.__plotframe2.create_line(offset[0] + spd * aspscale, 0,
+                                          offset[0] + spd * aspscale, 605,
+                                          dash=4)
+            self.__plotframe2.create_text(offset[0] + spd * aspscale + 5, 437,
+                                          text="{}".format(spd), anchor="sw")
         # plot axis
         self.__plotframe2.create_line(0, offset[1], 605, offset[1],
                                       fill="white")
@@ -251,10 +278,6 @@ class EnvelopeWindow:
                                           offset[0]+x, offset[1]-y, fill="red")
             old_y = y
             x += 40
-
-        self.__plotframe2.create_line(0, offset[1] - 1*loascale, 605,
-                                      offset[1] - 1*loascale,
-                                      fill="green", dash=4)
 
         # origin dot
         self.__plotframe2.create_oval(offset[0]-2, offset[1]-2,
@@ -344,8 +367,18 @@ class EnvelopeWindow:
                                       relief="sunken", bg="#0f228b")
         self.__controlframe1.grid(row=9, rowspan=4, column=11, columnspan=3)
 
+        # axis
         self.__controlframe1.create_line(0, 75, 405, 75, fill="white")
         self.__controlframe1.create_line(200, 0, 200, 155, fill="white")
+        # axis legend
+        self.__controlframe1.create_text(400, offset1[1] - 2,
+                                         text="RT", anchor="se", fill="white")
+        self.__controlframe1.create_text(offset1[0] + 5, 8,
+                                         text="DN", anchor="nw", fill="white")
+        self.__controlframe1.create_text(10, offset1[1] - 2,
+                                         text="LT", anchor="sw", fill="white")
+        self.__controlframe1.create_text(offset1[0] + 5, 150,
+                                         text="UP", anchor="sw", fill="white")
 
         # origin dot
         self.__controlframe1.create_oval(offset1[0] - 2, offset1[1] - 2,
@@ -364,6 +397,11 @@ class EnvelopeWindow:
         self.__controlframe2.grid(row=13, column=11, columnspan=3)
         # axis
         self.__controlframe2.create_line(200, 0, 200, 25, fill="white")
+        # axis legend
+        self.__controlframe2.create_text(400, offset2[1],
+                                         text="RT", anchor="e", fill="white")
+        self.__controlframe2.create_text(10, offset2[1],
+                                         text="LT", anchor="w", fill="white")
         # moving target dot
         self.__controlframe2\
             .create_polygon(offset2[0]-8, offset2[1], offset2[0], offset2[1]-8,
@@ -377,14 +415,23 @@ class EnvelopeWindow:
         a frame to indicate ship's sideslip."""
 
         offset = (200, 14)
+        scale = 13.3333  # 13.33 px/degree --> 15 degrees/positive halfplot
 
         # init the frame
         self.__sdslpframe = Canvas(self.__baseframe, width=400, height=20,
                                    borderwidth=4,
                                    relief="sunken", bg="#0f228b")
         self.__sdslpframe.grid(row=9, column=5, columnspan=5)
+        # unit markers
+        for deg in range(-4, 5):
+            deg *= 5
+            self.__sdslpframe.create_line(offset[0] + deg * scale, 0,
+                                          offset[0] + deg * scale, 30, dash=4)
+            self.__sdslpframe.create_text(offset[0] + deg * scale + 5, 14,
+                                          text="{}".format(deg), anchor="w")
         # axis
         self.__sdslpframe.create_line(200, 0, 200, 25, fill="white")
+
         # moving target dot
         self.__sdslpframe\
             .create_polygon(offset[0]-8, offset[1], offset[0], offset[1]-8,
@@ -587,7 +634,7 @@ class EnvelopeWindow:
         the contents of the AOA-ROLL -graph"""
 
         aoascale = 11.67  # 14 px/degree --> 28.6 degrees/positive halfplot
-        rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
+        rollscale = 4.16667  # 4.167 px/degree --> 60 degrees/positive halfplot
         offset = (250, 350)  # centerpoint offset
         try:
             # create a line from old datapoint to new one
@@ -756,7 +803,7 @@ class EnvelopeWindow:
         elescale = 10  # n px/XXX --> n XXX/positive halfplot
         rudscale = 10  # n px/XXX --> n XXX/positive halfplot
 
-        # calculate new coordinates for traget dot
+        # calculate new coordinates for target dot
         newxy = [offset1[0]-5 + packet["AIL"] * ailscale,
                  offset1[1]-5 + -packet["ELE"] * elescale,
                  offset1[0]+5 + packet["AIL"] * ailscale,
