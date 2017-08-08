@@ -126,7 +126,7 @@ class EnvelopeWindow:
 
         offset = (250, 350)
         aoascale = 11.67  # 11.67 px/degree --> 30 degrees/positive halfplot
-        rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
+        # rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
         aoa_mp = 20  # max positive aoa
         aoa_mn = 12  # max negative aoa
 
@@ -152,25 +152,25 @@ class EnvelopeWindow:
         self.__plotframe.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                      tags="dot")
         # axis legend
-        self.__plotframe.create_text(10, offset[1]-2, text="Roll (degrees)",
-                                     anchor="sw", fill="white")
-        self.__plotframe.create_text(offset[0]+5, 495,
+        self.__plotframe.create_text(500, offset[1]-2, text="Roll (degrees)",
+                                     anchor="se", fill="white")
+        self.__plotframe.create_text(offset[0]+5, 15,
                                      text="Angle of attack (degrees)",
-                                     anchor="sw", fill="white")
+                                     anchor="nw", fill="white")
         # limit lines
         # max positive aoa
         self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 505,
                                      offset[1] - aoa_mp * aoascale,
                                      fill="red")
         self.__plotframe.create_text(495, offset[1] - aoa_mp * aoascale - 2,
-                                     text="Max + AOA",
+                                     text="Max (+) AOA",
                                      anchor="se", fill="red")
         # max negative aoa
         self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 505,
                                      offset[1] + aoa_mn * aoascale,
                                      fill="red")
         self.__plotframe.create_text(495, offset[1] + aoa_mn * aoascale - 2,
-                                     text="Max - AOA",
+                                     text="Max (-) AOA",
                                      anchor="se", fill="red")
         # init the target dot to origin
         self.__plotframe.move("dot", offset[0]-5, offset[1]-5)
@@ -208,45 +208,46 @@ class EnvelopeWindow:
         self.__plotframe2.create_line(offset[0] + vmo*aspscale, 0,
                                       offset[0] + vmo*aspscale, 605,
                                       fill="red")
-        self.__plotframe2.create_text(offset[0] + vmo*aspscale + 5, 495,
-                                      text="Max\noperating\nspeed",
-                                      anchor="sw", fill="red")
+        self.__plotframe2.create_text(offset[0] + vmo*aspscale - 5, 500,
+                                      text="Max\noperating speed",
+                                      anchor="se", fill="red", justify="right")
         # normal stall speed
         self.__plotframe2.create_line(offset[0] + nss * aspscale, 0,
                                       offset[0] + nss * aspscale, 605,
                                       fill="red")
-        self.__plotframe2.create_text(offset[0] + nss * aspscale + 5, 495,
+        self.__plotframe2.create_text(offset[0] + nss * aspscale - 5, 500,
                                       text="Normal stall speed",
-                                      anchor="sw", fill="red")
+                                      anchor="se", fill="red")
         # max maneuver speed
         self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
                                       offset[0] + vmm*aspscale, 605,
                                       fill="green", dash=4)
-        self.__plotframe2.create_text(offset[0] + vmm*aspscale + 5, 495,
-                                      text="Maneuvering speed",
-                                      anchor="sw", fill="green")
+        self.__plotframe2.create_text(offset[0] + vmm*aspscale - 5, 500,
+                                      text="Maneuvering\nspeed",
+                                      anchor="se", fill="green",
+                                      justify="right")
         # max positive load
         self.__plotframe2.create_line(0, offset[1] - gmp*loascale, 605,
                                       offset[1] - gmp * loascale,
                                       fill="red")
-        self.__plotframe2.create_text(495, offset[1] - gmp*loascale - 2,
-                                      text="Max + load",
-                                      anchor="se", fill="red")
+        self.__plotframe2.create_text(500, offset[1] - gmp*loascale - 2,
+                                      text="Max\n(+) load",
+                                      anchor="se", fill="red", justify="right")
         # max negative load
         self.__plotframe2.create_line(0, offset[1] + gmn*loascale, 605,
                                       offset[1] + gmn * loascale,
                                       fill="red")
-        self.__plotframe2.create_text(495, offset[1] + gmn*loascale - 2,
-                                      text="Max - load",
-                                      anchor="se", fill="red")
+        self.__plotframe2.create_text(500, offset[1] + gmn*loascale - 2,
+                                      text="Max\n(-) load",
+                                      anchor="se", fill="red", justify="right")
         old_y = 0
-        x = 0
+        x = 40
         while x < 501:
-            y = 0.001661882*(x**2) + 0.3827509917*x
-            self.__plotframe2.create_line(offset[0]+x-10, offset[1]-old_y,
+            y = 0.0021722547*(x**2) + 0.4093120328*x
+            self.__plotframe2.create_line(offset[0]+x-40, offset[1]-old_y,
                                           offset[0]+x, offset[1]-y, fill="red")
             old_y = y
-            x += 10
+            x += 40
 
         self.__plotframe2.create_line(0, offset[1] - 1*loascale, 605,
                                       offset[1] - 1*loascale,
@@ -260,12 +261,12 @@ class EnvelopeWindow:
         self.__plotframe2.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                       tags="dot")
         # axis legend
-        self.__plotframe2.create_text(595, offset[1]-2,
-                                      text="Air velocity (knots)",
+        self.__plotframe2.create_text(500, offset[1]-2,
+                                      text="Airspeed\n(knots)",
                                       anchor="se", fill="white")
-        self.__plotframe2.create_text(offset[0]+5, 595,
+        self.__plotframe2.create_text(offset[0]+5, 15,
                                       text="G load (g)",
-                                      anchor="sw", fill="white")
+                                      anchor="nw", fill="white")
         # init the target dot to origin
         self.__plotframe2.move("dot", offset[0]-5, offset[1]-5)
         return
@@ -580,9 +581,9 @@ class EnvelopeWindow:
         """update_plotframe is a method that updates
         the contents of the AOA-ROLL -graph"""
 
-        aoascale = 14  # 14 px/degree --> 28.6 degrees/positive halfplot
+        aoascale = 11.67  # 14 px/degree --> 28.6 degrees/positive halfplot
         rollscale = 5  # 5 px/degree --> 60 degrees/positive halfplot
-        offset = (300, 400)  # centerpoint offset
+        offset = (250, 350)  # centerpoint offset
         try:
             # create a line from old datapoint to new one
             self.__plot1_lines\
@@ -618,9 +619,9 @@ class EnvelopeWindow:
         """update_plotframe2 is a method that updates
         the contents of the AIRSPD-LOAD -graph"""
 
-        aspscale = 1.8333  # 1.83 px/kt --> 300 kts/positive halfplot
-        loascale = 100  # 100 px/g --> 4 g/positive halfplot
-        offset = (50, 400)  # centerpoint offset
+        aspscale = 1.5  # 1.5 px/kt --> 300 kts/positive halfplot
+        loascale = 87.5  # 100 px/g --> 4 g/positive halfplot
+        offset = (50, 350)  # centerpoint offset
         try:
             # create a line from old datapoint to new one
             self.__plot2_lines\
@@ -658,19 +659,19 @@ class EnvelopeWindow:
         """update_aoaframe is a method that updates
         the visual bar graph displaying AOA"""
 
-        scale = 5  # 5 px/degree --> 30 deg == full bar
+        scale = 6  # 6 px/degree --> 25 deg == full bar
         # calculate new coordinates for the corners of the bar
         self.__aoaframe.coords("aoabar",
                                [0, 150, 30, 150,
                                 30, 150-(scale*packet["AOA"]),
                                 0, 150 - (scale*packet["AOA"])])
-        # values greater than 30 degrees make the bar bright red
-        if abs(packet["AOA"]) > 30:
+        # values greater than 20 degrees make the bar bright red
+        if abs(packet["AOA"]) > 20:
             self.__aoaframe.itemconfig("aoabar", fill="#800000")
             return
-        # values lesser than 30 degrees are a percentage of 30 degrees
+        # values lesser than 20 degrees are a percentage of 20 degrees
         # --> apply that percentage in reverse to amount of green in RGB color
-        color = hex(abs(int(abs(packet["AOA"]) / 30*255) - 0xff)).lstrip('0')
+        color = hex(abs(int(abs(packet["AOA"]) / 20*255) - 0xff)).lstrip('0')
         color = color.lstrip('x')
         if len(color) == 1:
             color = '0'+color
