@@ -4,7 +4,7 @@ all the gathered and plotted data from the simulator"""
 import math
 import time
 
-from tkinter import Tk, Label, Frame, Canvas, PhotoImage, Button, Entry
+from tkinter import Tk, Label, Frame, Canvas, PhotoImage, Button  # , Entry
 from udp_receiver import UDPReceiver
 from hexdumpreader import HexDumpReader
 
@@ -22,6 +22,8 @@ class EnvelopeWindow:
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
         self.__root.geometry("1366x768")
+        self.__baseframe = Frame(self.__root)
+        self.__baseframe.pack()
 
         # datapoints (plot lines) are stored in lists
         self.__maxdatapoints = 3000
@@ -52,19 +54,19 @@ class EnvelopeWindow:
         data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
-            self.__root.after(100, self.read_hexdump)
+            self.__baseframe.after(100, self.read_hexdump)
         elif data_input == 1:
             self.__rx = UDPReceiver()
-            self.__root.after(100, self.listen_udp)
+            self.__baseframe.after(100, self.listen_udp)
         elif data_input == 2:
             self.__rx = UDPReceiver()
             self.__log = open("capture4.txt", "r")
-            self.__root.after(100, self.read_log)
+            self.__baseframe.after(100, self.read_log)
 
         self.__t0 = float(time.time())
 
         # fire up the rootwindow
-        self.__root.mainloop()
+        self.__baseframe.mainloop()
 
         return
 
@@ -73,27 +75,27 @@ class EnvelopeWindow:
         and some strucural elements on the root window"""
 
         # titles
-        Label(self.__root, text="Value log")\
+        Label(self.__baseframe, text="Value log")\
             .grid(row=1, column=1, columnspan=4)
-        Label(self.__root, text="AOA bar", justify="left") \
+        Label(self.__baseframe, text="AOA bar", justify="left") \
             .grid(row=4, column=4, sticky="w")
-        Label(self.__root, text="Load bar", justify="right") \
+        Label(self.__baseframe, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__root, text="Roll-Angle of Attack plot", justify="right") \
-            .grid(row=1, column=5, columnspan=5, sticky="s")
-        Label(self.__root, text="Airspeed-Load plot", justify="right") \
+        Label(self.__baseframe, text="Roll-Angle of Attack plot",
+              justify="right") .grid(row=1, column=5, columnspan=5, sticky="s")
+        Label(self.__baseframe, text="Airspeed-Load plot", justify="right") \
             .grid(row=1, column=11, sticky="s")
-        Label(self.__root, text="Load bar", justify="right") \
+        Label(self.__baseframe, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__root, text="Absolute inclination")\
+        Label(self.__baseframe, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
-        Label(self.__root, text="Control position") \
+        Label(self.__baseframe, text="Control position") \
             .grid(row=8, column=11)
-        Label(self.__root, text="Sideslip") \
+        Label(self.__baseframe, text="Sideslip") \
             .grid(row=8, column=5, columnspan=5)
         # empty labels as structural dividers
-        Label(self.__root, height=0).grid(row=3, column=1, columnspan=4)
-        Label(self.__root, height=0).grid(row=5, column=1, columnspan=4)
+        Label(self.__baseframe, height=0).grid(row=3, column=1, columnspan=4)
+        Label(self.__baseframe, height=0).grid(row=5, column=1, columnspan=4)
         return
 
     def __init_logframe(self):
@@ -101,7 +103,8 @@ class EnvelopeWindow:
         a frame for showing flight data values"""
 
         # init the frame
-        self.__logframe = Frame(self.__root, borderwidth=4, relief="sunken")
+        self.__logframe \
+            = Frame(self.__baseframe, borderwidth=4, relief="sunken")
         self.__logframe.grid(row=2, column=1, columnspan=4, sticky="n")
         self.__logframe.grid_propagate(0)
         self.__logframe_contents = dict()
@@ -131,7 +134,7 @@ class EnvelopeWindow:
         aoa_mn = 12  # max negative aoa
 
         # init the frame
-        self.__plotframe = Canvas(self.__root, height=500, width=500,
+        self.__plotframe = Canvas(self.__baseframe, height=500, width=500,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
         self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
                               sticky="n")
@@ -191,7 +194,7 @@ class EnvelopeWindow:
         offset = (50, 350)  # centerpoint offset
 
         # init the frame
-        self.__plotframe2 = Canvas(self.__root, height=500, width=500,
+        self.__plotframe2 = Canvas(self.__baseframe, height=500, width=500,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
         self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
@@ -276,7 +279,7 @@ class EnvelopeWindow:
         a frame and a bar for displaying the ANGLE OF ATTACK"""
 
         # init the frame
-        self.__aoaframe = Canvas(self.__root, width=25, height=300,
+        self.__aoaframe = Canvas(self.__baseframe, width=25, height=300,
                                  borderwidth=4,
                                  relief="sunken", bg="white")
         self.__aoaframe.grid(row=4, column=3, sticky="nw")
@@ -292,7 +295,7 @@ class EnvelopeWindow:
         a frame and a bar for displaying the LOAD"""
 
         # init the frame
-        self.__loadframe = Canvas(self.__root, width=25, height=300,
+        self.__loadframe = Canvas(self.__baseframe, width=25, height=300,
                                   borderwidth=4,
                                   relief="sunken", bg="white")
         self.__loadframe.grid(row=4, column=2, sticky="ne")
@@ -308,7 +311,7 @@ class EnvelopeWindow:
         horizon for displaying the absolute inclination of the aeroplane"""
 
         # init the frame
-        self.__inclframe = Canvas(self.__root, width=200, height=200,
+        self.__inclframe = Canvas(self.__baseframe, width=200, height=200,
                                   borderwidth=4,
                                   relief="sunken", bg="#9ea9fe")
         self.__inclframe.grid(row=7, rowspan=6,
@@ -336,7 +339,7 @@ class EnvelopeWindow:
         offset2 = (200, 14)
 
         # init the 1st frame
-        self.__controlframe1 = Canvas(self.__root, width=400, height=150,
+        self.__controlframe1 = Canvas(self.__baseframe, width=400, height=150,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
         self.__controlframe1.grid(row=9, rowspan=4, column=11, columnspan=3)
@@ -355,7 +358,7 @@ class EnvelopeWindow:
                                          fill="red", outline="red", tags="dot")
 
         # init the 2nd frame
-        self.__controlframe2 = Canvas(self.__root, width=400, height=20,
+        self.__controlframe2 = Canvas(self.__baseframe, width=400, height=20,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
         self.__controlframe2.grid(row=13, column=11, columnspan=3)
@@ -376,7 +379,7 @@ class EnvelopeWindow:
         offset = (200, 14)
 
         # init the frame
-        self.__sdslpframe = Canvas(self.__root, width=400, height=20,
+        self.__sdslpframe = Canvas(self.__baseframe, width=400, height=20,
                                    borderwidth=4,
                                    relief="sunken", bg="#0f228b")
         self.__sdslpframe.grid(row=9, column=5, columnspan=5)
@@ -394,34 +397,36 @@ class EnvelopeWindow:
         such as buttons and entry boxes"""
 
         # create a stop button and assign command
-        self.__stopbutton = Button(self.__root, text="Stop",
+        self.__stopbutton = Button(self.__baseframe, text="Stop",
                                    command=self.__toggle_stop,
+                                   height=4, width=6,
                                    activebackground="red")
         self.__stopbutton.grid(row=10, column=5)
 
         # create a clear button and assign command
-        self.__clearbutton = Button(self.__root, text="Clear",
+        self.__clearbutton = Button(self.__baseframe, text="Clear",
                                     command=self.clear_plots,
+                                    height=4, width=6,
                                     activebackground="blue")
-        self.__clearbutton.grid(row=11, column=5)
+        self.__clearbutton.grid(row=10, column=9)
 
-        # create a text label describing the purpose of the entry box
-        Label(self.__root, text="Limit data points to last:") \
-            .grid(row=10, rowspan=2, column=6, sticky="e")
-        # bind the variable vcmd to a method call for validation
-        vcmd = self.__root.register(self.validate_entry)
-        # create an entrybox for changing the maximum datapoint limit
-        self.__datapt_entry \
-            = Entry(self.__root, validate='key', validatecommand=(vcmd, '%S'),
-                    justify="right", width=7)
-        # default value for entrybox is 3000
-        self.__datapt_entry.insert(-1, self.__maxdatapoints)
-        self.__datapt_entry.grid(row=10, column=7, rowspan=2)
-
-        # create a set button for the datapoint limit and assign command
-        self.__setbutton = Button(self.__root, text="Set",
-                                  command=self.set_datapoint_limit)
-        self.__setbutton.grid(row=10, column=8, rowspan=2, sticky="w")
+        # # create a text label describing the purpose of the entry box
+        # Label(self.__root, text="Limit data points to last:") \
+        #     .grid(row=10, rowspan=2, column=6, sticky="e")
+        # # bind the variable vcmd to a method call for validation
+        # vcmd = self.__root.register(self.validate_entry)
+        # # create an entrybox for changing the maximum datapoint limit
+        # self.__datapt_entry \
+        #     = Entry(self.__root, validate='key',validatecommand=(vcmd, '%S'),
+        #             justify="right", width=7)
+        # # default value for entrybox is 3000
+        # self.__datapt_entry.insert(-1, self.__maxdatapoints)
+        # self.__datapt_entry.grid(row=10, column=7, rowspan=2)
+        #
+        # # create a set button for the datapoint limit and assign command
+        # self.__setbutton = Button(self.__root, text="Set",
+        #                           command=self.set_datapoint_limit)
+        # self.__setbutton.grid(row=10, column=8, rowspan=2, sticky="w")
         return
 
     def clear_plots(self):
@@ -438,19 +443,19 @@ class EnvelopeWindow:
         except IndexError:
             return
 
-    def set_datapoint_limit(self):
-        """set_datapoint_limit is a method that fetches an integer from
-        the entry line and sets it to be the current datapoint limit"""
-
-        try:
-            # if the entry contains a sensible integer, set limit
-            self.__maxdatapoints = int(self.__datapt_entry.get())
-            self.__setbutton.configure(text="Limit set!", state="disabled")
-        except ValueError:
-            # if the entry contains nothing or a weird value, no limit
-            self.__setbutton.configure(text="No limit", state="disabled")
-            self.__maxdatapoints = 100000
-        return
+    # def set_datapoint_limit(self):
+    #     """set_datapoint_limit is a method that fetches an integer from
+    #     the entry line and sets it to be the current datapoint limit"""
+    #
+    #     try:
+    #         # if the entry contains a sensible integer, set limit
+    #         self.__maxdatapoints = int(self.__datapt_entry.get())
+    #         self.__setbutton.configure(text="Limit set!", state="disabled")
+    #     except ValueError:
+    #         # if the entry contains nothing or a weird value, no limit
+    #         self.__setbutton.configure(text="No limit", state="disabled")
+    #         self.__maxdatapoints = 100000
+    #     return
 
     def __toggle_stop(self):
         """toggle_stop is a method that raises and lowers
@@ -466,27 +471,27 @@ class EnvelopeWindow:
             self.__stopbutton.configure(text="Start", activebackground="green")
         return
 
-    def validate_entry(self, text):
-        """validate_entry is a method that checks every character that is added
-        or removed from the entry line and decides if said character is OK"""
-
-        try:
-            # value change in entry box toggles button disable off
-            self.__setbutton.configure(text="Set", state="normal")
-        except AttributeError:
-            pass
-        # checking every character in proposed entry if they are ok
-        for char in text:
-            if char in '0123456789':
-                continue
-            else:
-                return False
-        try:
-            # finally checking if the characters are ok as a whole
-            int(text)
-            return True
-        except ValueError:
-            return False
+    # def validate_entry(self, text):
+    #     """validate_entry is a method that checks every char that is added
+    #     or removed from the entry line and decides if said character is OK"""
+    #
+    #     try:
+    #         # value change in entry box toggles button disable off
+    #         self.__setbutton.configure(text="Set", state="normal")
+    #     except AttributeError:
+    #         pass
+    #     # checking every character in proposed entry if they are ok
+    #     for char in text:
+    #         if char in '0123456789':
+    #             continue
+    #         else:
+    #             return False
+    #     try:
+    #         # finally checking if the characters are ok as a whole
+    #         int(text)
+    #         return True
+    #     except ValueError:
+    #         return False
 
     def listen_udp(self):
         """listen_udp() is a method that calls UDPReceiver's method
@@ -497,7 +502,7 @@ class EnvelopeWindow:
             # display updated values
             self.display_data(packet)
         # read again soon
-        self.__root.after(30, self.listen_udp)
+        self.__baseframe.after(30, self.listen_udp)
         return
 
     def read_log(self):
@@ -521,7 +526,7 @@ class EnvelopeWindow:
             if packet:
                 self.display_data(packet)
         # read again soon
-        self.__root.after(30, self.read_log)
+        self.__baseframe.after(30, self.read_log)
         return
 
     def read_hexdump(self):
@@ -537,7 +542,7 @@ class EnvelopeWindow:
             print("timeout yay!")
         # and if the package is not null, display the data
         # read again soon
-        self.__root.after(200, self.read_hexdump)
+        self.__baseframe.after(200, self.read_hexdump)
         return
 
     def display_data(self, packet):
