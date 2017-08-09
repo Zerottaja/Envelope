@@ -51,7 +51,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 0
+        data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__baseframe.after(100, self.read_hexdump)
@@ -178,14 +178,14 @@ class EnvelopeWindow:
         # max positive aoa
         self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 505,
                                      offset[1] - aoa_mp * aoascale,
-                                     fill="red")
+                                     fill="red", width=2)
         self.__plotframe.create_text(495, offset[1] - aoa_mp * aoascale - 2,
                                      text="Max (+) AOA",
                                      anchor="se", fill="red")
         # max negative aoa
         self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 505,
                                      offset[1] + aoa_mn * aoascale,
-                                     fill="red")
+                                     fill="red", width=2)
         self.__plotframe.create_text(495, offset[1] + aoa_mn * aoascale - 2,
                                      text="Max (-) AOA",
                                      anchor="se", fill="red")
@@ -235,16 +235,16 @@ class EnvelopeWindow:
 
         # limit lines
         # max operating speed
-        self.__plotframe2.create_line(offset[0] + vmo*aspscale, 0,
+        self.__plotframe2.create_line(offset[0] + vmo*aspscale, 65,
                                       offset[0] + vmo*aspscale, 605,
-                                      fill="red")
+                                      fill="red", width=2)
         self.__plotframe2.create_text(offset[0] + vmo*aspscale - 5, 500,
                                       text="Max\noperating speed",
                                       anchor="se", fill="red", justify="right")
         # normal stall speed
-        self.__plotframe2.create_line(offset[0] + nss * aspscale, 0,
+        self.__plotframe2.create_line(offset[0] + nss * aspscale, 240,
                                       offset[0] + nss * aspscale, 605,
-                                      fill="red")
+                                      fill="red", width=2)
         self.__plotframe2.create_text(offset[0] + nss * aspscale - 5, 500,
                                       text="Normal stall speed",
                                       anchor="se", fill="red")
@@ -257,25 +257,26 @@ class EnvelopeWindow:
                                       anchor="se", fill="green",
                                       justify="right")
         # max positive load
-        self.__plotframe2.create_line(0, offset[1] - gmp*loascale, 605,
+        self.__plotframe2.create_line(300, offset[1] - gmp*loascale, 605,
                                       offset[1] - gmp * loascale,
-                                      fill="red")
+                                      fill="red", width=2)
         self.__plotframe2.create_text(500, offset[1] - gmp*loascale - 2,
                                       text="Max\n(+) load",
                                       anchor="se", fill="red", justify="right")
         # max negative load
-        self.__plotframe2.create_line(0, offset[1] + gmn*loascale, 605,
+        self.__plotframe2.create_line(160, offset[1] + gmn*loascale, 605,
                                       offset[1] + gmn * loascale,
-                                      fill="red")
+                                      fill="red", width=2)
         self.__plotframe2.create_text(500, offset[1] + gmn*loascale - 2,
                                       text="Max\n(-) load",
                                       anchor="se", fill="red", justify="right")
         old_y = 0
         x = 40
-        while x < 501:
+        while x < 281:
             y = 0.0021722547*(x**2) + 0.4093120328*x
             self.__plotframe2.create_line(offset[0]+x-40, offset[1]-old_y,
-                                          offset[0]+x, offset[1]-y, fill="red")
+                                          offset[0]+x, offset[1]-y,
+                                          fill="red", width=2)
             old_y = y
             x += 40
 
@@ -366,6 +367,9 @@ class EnvelopeWindow:
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
         self.__controlframe1.grid(row=9, rowspan=4, column=11, columnspan=3)
+        # nice little fade to black on the background
+        self.img2 = PhotoImage(file="images/graphbg_c.gif")
+        self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
 
         # axis
         self.__controlframe1.create_line(0, 75, 405, 75, fill="white")
@@ -795,7 +799,8 @@ class EnvelopeWindow:
         return
 
     def update_controlframes(self, packet):
-        """Docstring"""  # TODO docs, comments
+        """update_controlrames() is a method thar moves
+        the ele-ail target dot and rudder diamond in the control frames."""
 
         offset1 = (200, 75)
         offset2 = (200, 14)
@@ -823,7 +828,8 @@ class EnvelopeWindow:
         return
 
     def update_sdslpframe(self, packet):
-        """Docstring"""  # TODO docs, comments
+        """update_sdslpframe() is a method that moves the diamond
+        indicating the ship's sideslip."""
 
         offset = (200, 14)
         scale = 13.3333  # 13.33 px/degree --> 15 degrees/positive halfplot
