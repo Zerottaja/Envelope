@@ -95,8 +95,7 @@ UDP-port = 4444 # default 4444""")
             data = data.split(",")
         packet = dict()
         i = 0
-        for header in ("ROL", "PTC", "HDG", "AOA", "SDS", "LOA",
-                       "ASP", "FLP", "ELE", "AIL", "RUD"):
+        for header in ("ELE", "AIL", "RUD"):
             try:
                 packet[header] = float(data[i])
             except (ValueError, IndexError):

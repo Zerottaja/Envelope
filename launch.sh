@@ -8,8 +8,7 @@ then
     echo Done!
 fi
 echo Launching visual interface...
-python3 relay_node.py &
-sleep 1
+python3 visual_interface.py &
 echo Done!
 echo Launching TCP-packet capturing...
 tshark -i enp0s25 -Y "ip.src == 192.9.200.155 and tcp.len == 1024 and (data.data[2] == 11)" -Eheader=n -Tfields -e data.data > packet_fifo

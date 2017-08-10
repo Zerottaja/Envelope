@@ -11,9 +11,9 @@ class HexDumpReader:
 
     def __init__(self):
         try:
-            print("opening")
+            print("Opening pipe..")
             self.__file = open("packet_fifo",)
-            print("opened")
+            print("Opened.")
         except FileNotFoundError as err:
             print(err)
         return

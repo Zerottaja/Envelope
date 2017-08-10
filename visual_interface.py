@@ -48,17 +48,19 @@ class EnvelopeWindow:
         self.__oldvelocity = None
         self.__oldload = None
         self.__oldaoa = None
+        self.__old_tcp_packet = {"ROL": 0.0, "PTC": 0.0, "HDG": 0.0,
+                                 "AOA": 0.0, "SDS": 0.0, "LOA": 0.0,
+                                 "ASP": 0.0, "FLP": 0.0}
+        self.__old_analog_packet = {"ELE": 0.0, "AIL": 0.0, "RUD": 0.0}
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 1
+        data_input = 0
         if data_input == 0:
             self.__hdr = HexDumpReader()
-            self.__baseframe.after(100, self.read_hexdump)
-        elif data_input == 1:
+            self.__baseframe.after(100, self.gather_data)
             self.__rx = UDPReceiver()
-            self.__baseframe.after(100, self.listen_udp)
-        elif data_input == 2:
+        elif data_input == 1:
             self.__rx = UDPReceiver()
             self.__log = open("capture4.txt", "r")
             self.__baseframe.after(100, self.read_log)
@@ -556,6 +558,47 @@ class EnvelopeWindow:
         self.__baseframe.after(30, self.listen_udp)
         return
 
+    def read_hexdump(self):
+        """read_hexdump is a method that calls
+        the slave HexDumpReader object's reading method"""
+
+        # get the package from HexDumpReader
+        try:
+            packet = self.__hdr.read_hexdump()
+            if packet:
+                self.display_data(packet)
+        except TimeoutError:
+            print("timeout yay!")
+        # and if the package is not null, display the data
+        # read again soon
+        self.__baseframe.after(200, self.read_hexdump)
+        return
+
+    def gather_data(self):
+        # get the analog packet from UDPReceiver
+        analog_packet = self.__rx.listen_to_port()
+        if analog_packet is None:
+            print("UDP timeout, keeping old analog-packet!")
+            analog_packet = self.__old_analog_packet
+        else:
+            self.__old_analog_packet = analog_packet
+        # get the package from HexDumpReader
+        try:
+            tcp_packet = self.__hdr.read_hexdump()
+            self.__old_tcp_packet = tcp_packet
+        except TimeoutError:
+            print("TCP timeout, keeping old tcp-packet!")
+            tcp_packet = self.__old_tcp_packet
+        # unite the packages
+        packet = {**analog_packet, **tcp_packet}
+
+        # display the data
+        self.display_data(packet)
+
+        # read again soon
+        self.__baseframe.after(100, self.gather_data)
+        return
+
     def read_log(self):
         """read_log() is a method that reads prerecorded packets from a
         text file and sends them onwards, emulating actual traffic"""
@@ -578,22 +621,6 @@ class EnvelopeWindow:
                 self.display_data(packet)
         # read again soon
         self.__baseframe.after(30, self.read_log)
-        return
-
-    def read_hexdump(self):
-        """read_hexdump is a method that calls
-        the slave HexDumpReader object's reading method"""
-
-        # get the package from HexDumpReader
-        try:
-            packet = self.__hdr.read_hexdump()
-            if packet:
-                self.display_data(packet)
-        except TimeoutError:
-            print("timeout yay!")
-        # and if the package is not null, display the data
-        # read again soon
-        self.__baseframe.after(200, self.read_hexdump)
         return
 
     def display_data(self, packet):
