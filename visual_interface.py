@@ -21,7 +21,7 @@ class EnvelopeWindow:
         self.__root = Tk()
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
-        self.__root.geometry("1366x768")
+        self.__root.geometry("1366x748")
         self.__baseframe = Frame(self.__root)
         self.__baseframe.pack()
 
@@ -91,8 +91,10 @@ class EnvelopeWindow:
             .grid(row=4, column=1, sticky="e")
         Label(self.__baseframe, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
-        Label(self.__baseframe, text="Control position") \
-            .grid(row=8, column=11)
+        Label(self.__baseframe, text="Elevon and\nAileron position",
+              justify="left").grid(row=8, rowspan=3, column=13, sticky="w")
+        Label(self.__baseframe, text="Rudder position") \
+            .grid(row=12, rowspan=1, column=13, sticky="w")
         Label(self.__baseframe, text="Sideslip") \
             .grid(row=8, column=5, columnspan=5)
         # empty labels as structural dividers
@@ -368,7 +370,7 @@ class EnvelopeWindow:
         self.__controlframe1 = Canvas(self.__baseframe, width=400, height=150,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe1.grid(row=9, rowspan=4, column=11, columnspan=3)
+        self.__controlframe1.grid(row=8, rowspan=4, column=11, columnspan=3)
         # nice little fade to black on the background
         self.img2 = PhotoImage(file="images/graphbg_c.gif")
         self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
@@ -400,7 +402,7 @@ class EnvelopeWindow:
         self.__controlframe2 = Canvas(self.__baseframe, width=400, height=20,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe2.grid(row=13, column=11, columnspan=3)
+        self.__controlframe2.grid(row=12, column=11, columnspan=3)
         # axis
         self.__controlframe2.create_line(200, 0, 200, 25, fill="white")
         # axis legend
