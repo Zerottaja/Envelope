@@ -1,8 +1,8 @@
 """This module contains a class that gathers data from different sources
 and packs it into a csv string."""
 
-from time import sleep
 from analoginputreader import AnalogInputReader
+from socket import *
 
 
 class RelayNode:
@@ -11,6 +11,8 @@ class RelayNode:
 
     def __init__(self):
         self.AIR = AnalogInputReader()
+        self.s = socket(AF_INET, SOCK_DGRAM)
+        self.s.bind(('10.41.3.47', 4444))
         return
 
     def gather_data(self):
@@ -23,8 +25,7 @@ class RelayNode:
 
         return csv_string
 
-    @staticmethod
-    def formatter(packet):
+    def formatter(self, packet):
         """formatter() transforms dict packets
         into csv strings in a predefined order."""
 
@@ -32,6 +33,8 @@ class RelayNode:
         for header in ("ELE", "AIL", "RUD"):
             csv_string += str(packet[header]) + ","
         csv_string = csv_string[:-1]
+        
+        self.s.sendto(bytes(csv_string,'UTF-8'),("10.41.3.234", 4444))
 
         return csv_string
 
@@ -41,4 +44,3 @@ if __name__ == '__main__':
     while True:
         DATA = RN.gather_data()
         print(DATA)
-        sleep(0.03)
