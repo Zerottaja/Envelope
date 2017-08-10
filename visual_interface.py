@@ -587,12 +587,16 @@ class EnvelopeWindow:
         # get the package from HexDumpReader
         try:
             tcp_packet = self.__hdr.read_hexdump()
-            self.__old_tcp_packet = tcp_packet
+            if tcp_packet is not None:
+                self.__old_tcp_packet = tcp_packet
+            else:
+                tcp_packet = self.__old_tcp_packet
         except TimeoutError:
             print("TCP timeout, keeping old tcp-packet!")
             tcp_packet = self.__old_tcp_packet
         # unite the packages
         packet = {**analog_packet, **tcp_packet}
+        print(packet)
 
         # display the data
         self.display_data(packet)
