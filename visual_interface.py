@@ -51,7 +51,9 @@ class EnvelopeWindow:
         self.__old_tcp_packet = {"ROL": 0.0, "PTC": 0.0, "HDG": 0.0,
                                  "AOA": 0.0, "SDS": 0.0, "LOA": 0.0,
                                  "ASP": 0.0, "FLP": 0.0}
-        self.__old_analog_packet = {"ELE": 0.0, "AIL": 0.0, "RUD": 0.0}
+        self.__old_analog_packets = []
+        for _ in range(0, 8):
+            self.__old_analog_packets.append({"ELE": 0.0, "AIL": 0.0, "RUD": 0.0})
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
@@ -363,7 +365,7 @@ class EnvelopeWindow:
         """init_controlframe is a method that creates two frames
         that indicate current controls position."""
 
-        offset1 = (200, 75)
+        offset1 = (200, 50)
         offset2 = (200, 14)
 
         # init the 1st frame
@@ -376,7 +378,7 @@ class EnvelopeWindow:
         self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
 
         # axis
-        self.__controlframe1.create_line(0, 75, 405, 75, fill="white")
+        self.__controlframe1.create_line(0, offset1[1], 405, offset1[1], fill="white")
         self.__controlframe1.create_line(200, 0, 200, 155, fill="white")
         # axis legend
         self.__controlframe1.create_text(400, offset1[1] - 2,
@@ -577,13 +579,23 @@ class EnvelopeWindow:
         return
 
     def gather_data(self):
+
+        def running_average(self):
+            aver_packet = {"ELE": 0.0, "AIL": 0.0, "RUD": 0.0}
+            for header in ["ELE", "AIL", "RUD"]:
+                for i in range(0,8):
+                    aver_packet[header] += self.__old_analog_packets[i][header]
+                aver_packet[header] /= 8
+            return aver_packet
         # get the analog packet from UDPReceiver
         analog_packet = self.__rx.listen_to_port()
         if analog_packet is None:
             print("UDP timeout, keeping old analog-packet!")
-            analog_packet = self.__old_analog_packet
+            analog_packet = self.__old_analog_packets[4]
         else:
-            self.__old_analog_packet = analog_packet
+            self.__old_analog_packets.append(analog_packet)
+            self.__old_analog_packets.pop(0)
+            analog_packet = running_average(self)
         # get the package from HexDumpReader
         try:
             tcp_packet = self.__hdr.read_hexdump()
@@ -835,26 +847,30 @@ class EnvelopeWindow:
         """update_controlrames() is a method thar moves
         the ele-ail target dot and rudder diamond in the control frames."""
 
-        offset1 = (200, 75)
+        offset1 = (200, 50)
         offset2 = (200, 14)
-        ailscale = 10  # n px/XXX --> n XXX/positive halfplot
-        elescale = 10  # n px/XXX --> n XXX/positive halfplot
-        rudscale = 10  # n px/XXX --> n XXX/positive halfplot
+        ailoffset = 535
+        ailscale = 0.4768  # n px/XXX --> n XXX/positive halfplot
+        elescale = 0.1960  # n px/XXX --> n XXX/positive halfplot
+        eleoffset = 365
+        rudscale = 0.55  # n px/XXX --> n XXX/positive halfplot
+        rudoffset = 513
+        print(packet["ELE"]*elescale, packet["AIL"]*ailscale, packet["RUD"]*rudscale)
 
         # calculate new coordinates for target dot
-        newxy = [offset1[0]-5 + packet["AIL"] * ailscale,
-                 offset1[1]-5 + -packet["ELE"] * elescale,
-                 offset1[0]+5 + packet["AIL"] * ailscale,
-                 offset1[1]+5 + -packet["ELE"] * elescale]
+        newxy = [offset1[0]-5 + (packet["AIL"] - ailoffset) * ailscale,
+                 offset1[1]-5 + (packet["ELE"] - eleoffset) * elescale,
+                 offset1[0]+5 + (packet["AIL"] - ailoffset) * ailscale,
+                 offset1[1]+5 + (packet["ELE"] - eleoffset) * elescale]
         # move the target dot
         self.__controlframe1.coords("dot", *newxy)
         self.__controlframe1.lift("dot")
 
         # calculate new coordinates for the rudder diamond
-        newxy = [offset2[0] - 8 + packet["RUD"] * rudscale, offset2[1],
-                 offset2[0] + packet["RUD"] * rudscale, offset2[1] - 8,
-                 offset2[0] + 8 + packet["RUD"] * rudscale, offset2[1],
-                 offset2[0] + packet["RUD"] * rudscale, offset2[1] + 8]
+        newxy = [offset2[0] - 8 + (packet["RUD"] - rudoffset) * rudscale, offset2[1],
+                 offset2[0] + (packet["RUD"] - rudoffset) * rudscale, offset2[1] - 8,
+                 offset2[0] + 8 + (packet["RUD"] - rudoffset) * rudscale, offset2[1],
+                 offset2[0] + (packet["RUD"] - rudoffset) * rudscale, offset2[1] + 8]
         # move the rudder diamond
         self.__controlframe2.coords("diamond", *newxy)
         self.__controlframe2.lift("diamond")
@@ -879,3 +895,4 @@ class EnvelopeWindow:
 
 if __name__ == '__main__':
     EnvelopeWindow()
+
