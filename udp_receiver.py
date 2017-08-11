@@ -65,7 +65,7 @@ UDP-port = 4444 # default 4444""")
         except OSError as err:
             print("{}. Check connection.".format(err))
         # after setup, these vars are not needed anymore
-        del self.__udp_ip, self.__udp_port
+        # del self.__udp_ip, self.__udp_port
 
         self.__timer = 0
 
@@ -75,21 +75,26 @@ UDP-port = 4444 # default 4444""")
         """listen_to_port() listens to the specified port and sends it
         to the formatter method"""
 
-        import time
+        self.__sock = socket.socket(socket.AF_INET,
+                                    socket.SOCK_DGRAM)
+        self.__sock.settimeout(1)
+        try:
+            self.__sock.bind((self.__udp_ip, self.__udp_port))
+        except OSError as err:
+            print("{}. Check connection.".format(err))
 
         try:
-            data = self.__sock.recvfrom(1024)[0]
+            data = self.__sock.recvfrom(128)[0]
         except socket.timeout:
             return None
         packet = self.formatter(data)
-        # print("dT between packages:", float(time.time()) - self.__timer)
-        self.__timer = time.time()
         return packet
 
     @staticmethod
     def formatter(data):
         """formatter() packs udp data into an easily accessible dict packet"""
         if len(data) > 10:
+            print("data:", data)
             data = str(data)
             data = data.strip("b'\\n")
             data = data.split(",")
