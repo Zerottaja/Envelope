@@ -17,9 +17,9 @@ class AnalogInputReader:
         """read_analog() gets the values of the input pins
         and packs them in a dictionary."""
         packet = dict()
-        packet["ELE"] = self.ele.value
-        packet["AIL"] = self.ail.value
-        packet["RUD"] = self.rud.value
+        packet["ELE"] = self.ele._read()
+        packet["AIL"] = self.ail._read()
+        packet["RUD"] = self.rud._read()
         packet = self.formatter(packet)
         return packet
 
