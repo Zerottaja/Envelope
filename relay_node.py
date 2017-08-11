@@ -34,7 +34,7 @@ class RelayNode:
             csv_string += str(packet[header]) + ","
         csv_string = csv_string[:-1]
         
-        self.s.sendto(bytes(csv_string,'UTF-8'),("192.9.200.201", 4444))
+        self.s.sendto(bytes(csv_string, 'UTF-8'), ("192.9.200.201", 4444))
 
         return csv_string
 

@@ -53,7 +53,8 @@ class EnvelopeWindow:
                                  "ASP": 0.0, "FLP": 0.0}
         self.__old_analog_packets = []
         for _ in range(0, 8):
-            self.__old_analog_packets.append({"ELE": 0.0, "AIL": 0.0, "RUD": 0.0})
+            self.__old_analog_packets\
+                .append({"ELE": 0.0, "AIL": 0.0, "RUD": 0.0})
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
@@ -378,7 +379,8 @@ class EnvelopeWindow:
         self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
 
         # axis
-        self.__controlframe1.create_line(0, offset1[1], 405, offset1[1], fill="white")
+        self.__controlframe1.create_line(0, offset1[1], 405, offset1[1],
+                                         fill="white")
         self.__controlframe1.create_line(200, 0, 200, 155, fill="white")
         # axis legend
         self.__controlframe1.create_text(400, offset1[1] - 2,
@@ -572,21 +574,27 @@ class EnvelopeWindow:
             if packet:
                 self.display_data(packet)
         except TimeoutError:
-            print("timeout yay!")
+            print("Timeout!")
         # and if the package is not null, display the data
         # read again soon
         self.__baseframe.after(200, self.read_hexdump)
         return
 
     def gather_data(self):
+        """gather_data() is a method that unites data from two sources."""
 
-        def running_average(self):
+        def running_average():
+            """running_average() constantly calculates the running average
+            of 8 subsequent analog packets to combat
+            the analog input's electric noise."""
+
             aver_packet = {"ELE": 0.0, "AIL": 0.0, "RUD": 0.0}
             for header in ["ELE", "AIL", "RUD"]:
-                for i in range(0,8):
+                for i in range(0, 8):
                     aver_packet[header] += self.__old_analog_packets[i][header]
                 aver_packet[header] /= 8
             return aver_packet
+
         # get the analog packet from UDPReceiver
         analog_packet = self.__rx.listen_to_port()
         if analog_packet is None:
@@ -595,8 +603,8 @@ class EnvelopeWindow:
         else:
             self.__old_analog_packets.append(analog_packet)
             self.__old_analog_packets.pop(0)
-            analog_packet = running_average(self)
-        # get the package from HexDumpReader
+            analog_packet = running_average()
+        # get the  tcp-packet from HexDumpReader
         try:
             tcp_packet = self.__hdr.read_hexdump()
             if tcp_packet is not None:
@@ -608,7 +616,6 @@ class EnvelopeWindow:
             tcp_packet = self.__old_tcp_packet
         # unite the packages
         packet = {**analog_packet, **tcp_packet}
-        print(packet)
 
         # display the data
         self.display_data(packet)
@@ -648,7 +655,6 @@ class EnvelopeWindow:
         # update values only if the stop flag is not raised
         if not self.__stop:
             self.update_logframe(packet)
-            # print(packet["LON"])
             self.update_plotframe(packet)
             self.update_aoaframe(packet)
             self.update_inclframe(packet)
@@ -850,12 +856,11 @@ class EnvelopeWindow:
         offset1 = (200, 50)
         offset2 = (200, 14)
         ailoffset = 535
-        ailscale = 0.4768  # n px/XXX --> n XXX/positive halfplot
-        elescale = 0.1960  # n px/XXX --> n XXX/positive halfplot
+        ailscale = 0.4768
+        elescale = 0.1960
         eleoffset = 365
-        rudscale = 0.55  # n px/XXX --> n XXX/positive halfplot
+        rudscale = 0.55
         rudoffset = 513
-        print(packet["ELE"]*elescale, packet["AIL"]*ailscale, packet["RUD"]*rudscale)
 
         # calculate new coordinates for target dot
         newxy = [offset1[0]-5 + (packet["AIL"] - ailoffset) * ailscale,
@@ -867,10 +872,14 @@ class EnvelopeWindow:
         self.__controlframe1.lift("dot")
 
         # calculate new coordinates for the rudder diamond
-        newxy = [offset2[0] - 8 + (packet["RUD"] - rudoffset) * rudscale, offset2[1],
-                 offset2[0] + (packet["RUD"] - rudoffset) * rudscale, offset2[1] - 8,
-                 offset2[0] + 8 + (packet["RUD"] - rudoffset) * rudscale, offset2[1],
-                 offset2[0] + (packet["RUD"] - rudoffset) * rudscale, offset2[1] + 8]
+        newxy = [offset2[0] - 8 + (packet["RUD"] - rudoffset)
+                 * rudscale, offset2[1],
+                 offset2[0] + (packet["RUD"] - rudoffset)
+                 * rudscale, offset2[1] - 8,
+                 offset2[0] + 8 + (packet["RUD"] - rudoffset)
+                 * rudscale, offset2[1],
+                 offset2[0] + (packet["RUD"] - rudoffset)
+                 * rudscale, offset2[1] + 8]
         # move the rudder diamond
         self.__controlframe2.coords("diamond", *newxy)
         self.__controlframe2.lift("diamond")
@@ -895,4 +904,3 @@ class EnvelopeWindow:
 
 if __name__ == '__main__':
     EnvelopeWindow()
-

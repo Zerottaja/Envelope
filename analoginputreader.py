@@ -20,15 +20,6 @@ class AnalogInputReader:
         packet["ELE"] = self.ele._read()
         packet["AIL"] = self.ail._read()
         packet["RUD"] = self.rud._read()
-        packet = self.formatter(packet)
-        return packet
-
-    @staticmethod
-    def formatter(packet):
-        """formatter() transforms the input voltages into control data."""
-
-        pass  # TODO formatter
-
         return packet
 
 
