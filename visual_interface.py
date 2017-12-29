@@ -32,6 +32,9 @@ class EnvelopeWindow:
         self.__controlplot_lines = []
         self.__stop = False
 
+        # plot confidence lines
+        self.__plot1_full_confidence = []
+
         # initializing all window elements
         self.__init_titles()
         self.__init_logframe()
@@ -41,11 +44,9 @@ class EnvelopeWindow:
         self.__init_loadframe()
         self.__init_inclframe()
         self.__init_controlframes()
-        # self.__init_sdslpframe()
         self.__init_widgets()
 
         # previous values of some data are kept track of
-        self.__oldroll = None
         self.__oldvelocity = None
         self.__oldload = None
         self.__oldaoa = None
@@ -90,7 +91,7 @@ class EnvelopeWindow:
             .grid(row=4, column=4, sticky="w")
         Label(self.__baseframe, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__baseframe, text="Roll-Angle of Attack plot",
+        Label(self.__baseframe, text="Sideslip-Angle of Attack plot",
               justify="right") .grid(row=1, column=5, columnspan=5, sticky="s")
         Label(self.__baseframe, text="Airspeed-Load plot", justify="right") \
             .grid(row=1, column=11, sticky="s")
@@ -138,7 +139,7 @@ class EnvelopeWindow:
 
         offset = (250, 350)
         aoascale = 11.67  # 11.67 px/degree --> 30 degrees/positive halfplot
-        rollscale = 4.16666  # 4.167 px/degree --> 60 degrees/positive halfplot
+        sdsscale = 16.67  # 16.67 px/degree --> 15 degrees/positive halfplot
         aoa_mp = 20  # max positive aoa
         aoa_mn = 12  # max negative aoa
 
@@ -158,12 +159,12 @@ class EnvelopeWindow:
                                          offset[1] - deg * aoascale, dash=4)
             self.__plotframe.create_text(40, offset[1] - deg * aoascale - 2,
                                          text="{}".format(deg), anchor="se")
-        for deg in range(-5, 6):
-            deg *= 10
-            self.__plotframe.create_line(offset[0] + deg * rollscale, 0,
-                                         offset[0] + deg * rollscale, 605,
+        for deg in range(-2, 3):
+            deg *= 5
+            self.__plotframe.create_line(offset[0] + deg * sdsscale, 0,
+                                         offset[0] + deg * sdsscale, 605,
                                          dash=4)
-            self.__plotframe.create_text(offset[0] + deg * rollscale + 5, 465,
+            self.__plotframe.create_text(offset[0] + deg * sdsscale + 5, 465,
                                          text="{}".format(deg), anchor="sw")
         # plot axis
         self.__plotframe.create_line(offset[0], 0, offset[0], 505,
@@ -178,7 +179,8 @@ class EnvelopeWindow:
         self.__plotframe.create_oval(0, 0, 10, 10, fill="red", outline="red",
                                      tags="dot")
         # axis legend
-        self.__plotframe.create_text(500, offset[1]-2, text="Roll (degrees)",
+        self.__plotframe.create_text(500, offset[1]+20,
+                                     text="Sideslip (degrees)",
                                      anchor="se", fill="white")
         self.__plotframe.create_text(offset[0]+5, 15,
                                      text="Angle of attack (degrees)",
@@ -188,16 +190,72 @@ class EnvelopeWindow:
         self.__plotframe.create_line(0, offset[1] - aoa_mp * aoascale, 505,
                                      offset[1] - aoa_mp * aoascale,
                                      fill="red", width=2)
-        self.__plotframe.create_text(495, offset[1] - aoa_mp * aoascale - 2,
+        self.__plotframe.create_text(140, offset[1] - aoa_mp * aoascale - 2,
                                      text="Max (+) AOA",
                                      anchor="se", fill="red")
         # max negative aoa
         self.__plotframe.create_line(0, offset[1] + aoa_mn * aoascale, 505,
                                      offset[1] + aoa_mn * aoascale,
                                      fill="red", width=2)
-        self.__plotframe.create_text(495, offset[1] + aoa_mn * aoascale - 2,
+        self.__plotframe.create_text(140, offset[1] + aoa_mn * aoascale - 2,
                                      text="Max (-) AOA",
                                      anchor="se", fill="red")
+        # confidence lines
+        sds_aoa_pair1 = ((0, -1.9), (1.1, -1.9), (6.2, 0.1), (9.8, 2.3),
+                         (8.4, 4.1), (7.5, 7), (6.1, 8.8), (4.8, 9.2),
+                         (4.8, 13.5), (4.5, 13.9), (0, 13.9))
+        sds_aoa_pair2 = ((0, -4), (10, -4), (10, 12),
+                         (7, 12), (7, 15), (0, 15))
+        sds_aoa_pair3 = ((0, -12), (4, -12), (4, -4),
+                         (4, 15), (4, 20), (0, 20))
+        for polarity in (1, -1):
+            for pairnmbr in range(0, 10):
+                self.__plot1_full_confidence.append(
+                    self.__plotframe
+                        .create_line(offset[0] + polarity
+                                     * sds_aoa_pair1[pairnmbr][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair1[pairnmbr][1]
+                                     * -aoascale,
+                                     offset[0] + polarity
+                                     * sds_aoa_pair1[pairnmbr+1][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair1[pairnmbr+1][1]
+                                     * -aoascale,
+                                     fill="green", width=2))
+            for pairnmbr in range(0, 5):
+                self.__plot1_full_confidence.append(
+                    self.__plotframe
+                        .create_line(offset[0] + polarity
+                                     * sds_aoa_pair2[pairnmbr][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair2[pairnmbr][1]
+                                     * -aoascale,
+                                     offset[0] + polarity
+                                     * sds_aoa_pair2[pairnmbr+1][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair2[pairnmbr+1][1]
+                                     * -aoascale,
+                                     fill="yellow", width=2))
+                if pairnmbr == 2:
+                    continue
+                self.__plot1_full_confidence.append(
+                    self.__plotframe
+                        .create_line(offset[0] + polarity
+                                     * sds_aoa_pair3[pairnmbr][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair3[pairnmbr][1]
+                                     * -aoascale,
+                                     offset[0] + polarity
+                                     * sds_aoa_pair3[pairnmbr+1][0] * sdsscale,
+                                     offset[1] + sds_aoa_pair3[pairnmbr+1][1]
+                                     * -aoascale,
+                                     fill="yellow", width=2, dash=8))
+        # confidence line legend
+        self.__plotframe.create_text(498, offset[1]-45,
+                                     text="Full confidence",
+                                     anchor="se", fill="green")
+        self.__plotframe.create_text(502, offset[1]-143,
+                                     text="Medium confidence",
+                                     anchor="se", fill="yellow")
+        self.__plotframe.create_text(500, offset[1]-235,
+                                     text="Extended medium confidence",
+                                     anchor="se", fill="yellow")
         # init the target dot to origin
         self.__plotframe.move("dot", offset[0]-5, offset[1]-5)
         return
@@ -673,8 +731,7 @@ class EnvelopeWindow:
             self.update_loadframe(packet)
             self.update_plotframe2(packet)
             self.update_controlframes(packet)
-            # self.update_sdslpframe(packet)
-            self.__oldroll = packet["ROL"]
+            self.__oldsds = packet["SDS"]
             self.__oldaoa = packet["AOA"]
             self.__oldvelocity = packet["ASP"]
             self.__oldload = packet["LOA"]
@@ -706,15 +763,15 @@ class EnvelopeWindow:
         the contents of the AOA-ROLL -graph"""
 
         aoascale = 11.67  # 14 px/degree --> 28.6 degrees/positive halfplot
-        rollscale = 4.16667  # 4.167 px/degree --> 60 degrees/positive halfplot
+        sdsscale = 16.67  # 16.67 px/degree --> 15 degrees/positive halfplot
         offset = (250, 350)  # centerpoint offset
         try:
             # create a line from old datapoint to new one
             self.__plot1_lines\
                 .append(self.__plotframe
-                        .create_line(self.__oldroll * rollscale + offset[0],
+                        .create_line(self.__oldsds * sdsscale + offset[0],
                                      self.__oldaoa * -aoascale + offset[1],
-                                     packet["ROL"] * rollscale + offset[0],
+                                     packet["SDS"] * sdsscale + offset[0],
                                      packet["AOA"] * -aoascale + offset[1],
                                      fill="white"))
         # first attempt throws a TypeError, oldvalues being None
@@ -722,9 +779,9 @@ class EnvelopeWindow:
             pass
 
         # calculate new coordinates for the target dot
-        newxy = [offset[0] - 5 + packet["ROL"] * rollscale,
+        newxy = [offset[0] - 5 + packet["SDS"] * sdsscale,
                  offset[1] - 5 + -packet["AOA"] * aoascale,
-                 offset[0] + 5 + packet["ROL"] * rollscale,
+                 offset[0] + 5 + packet["SDS"] * sdsscale,
                  offset[1] + 5 + -packet["AOA"] * aoascale]
         # move the target dot
         self.__plotframe.coords("dot", *newxy)
