@@ -94,7 +94,7 @@ UDP-port = 4444 # default 4444""")
     def formatter(data):
         """formatter() packs udp data into an easily accessible dict packet"""
         if len(data) > 10:
-            print("data:", data)
+            # print("data:", data)
             data = str(data)
             data = data.strip("b'\\n")
             data = data.split(",")

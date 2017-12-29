@@ -598,7 +598,7 @@ class EnvelopeWindow:
         # get the analog packet from UDPReceiver
         analog_packet = self.__rx.listen_to_port()
         if analog_packet is None:
-            print("UDP timeout, keeping old analog-packet!")
+            # print("UDP timeout, keeping old analog-packet!")
             analog_packet = self.__old_analog_packets[4]
         else:
             self.__old_analog_packets.append(analog_packet)
@@ -612,7 +612,7 @@ class EnvelopeWindow:
             else:
                 tcp_packet = self.__old_tcp_packet
         except TimeoutError:
-            print("TCP timeout, keeping old tcp-packet!")
+            # print("TCP timeout, keeping old tcp-packet!")
             tcp_packet = self.__old_tcp_packet
         # unite the packages
         packet = {**analog_packet, **tcp_packet}
@@ -665,8 +665,8 @@ class EnvelopeWindow:
             self.__oldroll = packet["ROL"]
             self.__oldaoa = packet["AOA"]
 
-            print("dT of window update:", float(time.time()) - self.__t0)
-            self.__t0 = float(time.time())
+            # print("dT of window update:", float(time.time()) - self.__t0)
+            # self.__t0 = float(time.time())
         return
 
     def update_logframe(self, packet):
