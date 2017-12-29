@@ -665,6 +665,7 @@ class EnvelopeWindow:
             self.__oldroll = packet["ROL"]
             self.__oldaoa = packet["AOA"]
 
+            print(packet)
             # print("dT of window update:", float(time.time()) - self.__t0)
             # self.__t0 = float(time.time())
         return
