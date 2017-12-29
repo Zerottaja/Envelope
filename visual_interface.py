@@ -21,7 +21,7 @@ class EnvelopeWindow:
         self.__root = Tk()
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
-        self.__root.geometry("1366x748")
+        # self.__root.geometry("1366x748")
         self.__baseframe = Frame(self.__root)
         self.__baseframe.pack()
 
@@ -29,6 +29,7 @@ class EnvelopeWindow:
         self.__maxdatapoints = 3000
         self.__plot1_lines = []
         self.__plot2_lines = []
+        self.__controlplot_lines = []
         self.__stop = False
 
         # initializing all window elements
@@ -40,7 +41,7 @@ class EnvelopeWindow:
         self.__init_loadframe()
         self.__init_inclframe()
         self.__init_controlframes()
-        self.__init_sdslpframe()
+        # self.__init_sdslpframe()
         self.__init_widgets()
 
         # previous values of some data are kept track of
@@ -48,6 +49,9 @@ class EnvelopeWindow:
         self.__oldvelocity = None
         self.__oldload = None
         self.__oldaoa = None
+        self.__oldsds = None
+        self.__oldele = None
+        self.__oldail = None
         self.__old_tcp_packet = {"ROL": 0.0, "PTC": 0.0, "HDG": 0.0,
                                  "AOA": 0.0, "SDS": 0.0, "LOA": 0.0,
                                  "ASP": 0.0, "FLP": 0.0}
@@ -58,14 +62,14 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 0
+        data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__baseframe.after(100, self.gather_data)
             self.__rx = UDPReceiver()
         elif data_input == 1:
             self.__rx = UDPReceiver()
-            self.__log = open("capture4.txt", "r")
+            self.__log = open("testi1.log", "r")
             self.__baseframe.after(100, self.read_log)
 
         self.__t0 = float(time.time())
@@ -94,12 +98,10 @@ class EnvelopeWindow:
             .grid(row=4, column=1, sticky="e")
         Label(self.__baseframe, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
-        Label(self.__baseframe, text="Elevon and\nAileron position",
+        Label(self.__baseframe, text="Elevator and\nAileron position",
               justify="left").grid(row=8, rowspan=3, column=13, sticky="w")
         Label(self.__baseframe, text="Rudder position") \
             .grid(row=12, rowspan=1, column=13, sticky="w")
-        Label(self.__baseframe, text="Sideslip") \
-            .grid(row=8, column=5, columnspan=5)
         # empty labels as structural dividers
         Label(self.__baseframe, height=0).grid(row=3, column=1, columnspan=4)
         Label(self.__baseframe, height=0).grid(row=5, column=1, columnspan=4)
@@ -458,14 +460,14 @@ class EnvelopeWindow:
         # create a stop button and assign command
         self.__stopbutton = Button(self.__baseframe, text="Stop",
                                    command=self.__toggle_stop,
-                                   height=4, width=6,
+                                   height=4, width=10,
                                    activebackground="red")
         self.__stopbutton.grid(row=10, column=5)
 
         # create a clear button and assign command
         self.__clearbutton = Button(self.__baseframe, text="Clear",
                                     command=self.clear_plots,
-                                    height=4, width=6,
+                                    height=4, width=10,
                                     activebackground="blue")
         self.__clearbutton.grid(row=10, column=9)
 
@@ -497,8 +499,10 @@ class EnvelopeWindow:
             while True:
                 self.__plotframe.delete(self.__plot1_lines[0])
                 self.__plotframe2.delete(self.__plot2_lines[0])
+                self.__controlframe1.delete(self.__controlplot_lines[0])
                 self.__plot1_lines.pop(0)
                 self.__plot2_lines.pop(0)
+                self.__controlplot_lines.pop(0)
         except IndexError:
             return
 
@@ -633,14 +637,22 @@ class EnvelopeWindow:
         # when running out of linces, start over
         if data == '':
             self.__log.close()
-            self.__log = open("capture4.txt", "r")
+            self.__log = open("testi1.log", "r")
         else:
             # strip extra characters away from the line
             data = str(data)
             data = data.strip("b'\\n")
             data = data.split(",")
             # use UDP reader's formatter for packaging
-            packet = self.__rx.formatter(data)
+            packet = dict()
+            i = 0
+            for header in ("FLP", "LOA", "PTC", "AOA", "SDS", "RUD",
+                           "ELE", "AIL", "ASP", "HDG", "ROL"):
+                try:
+                    packet[header] = float(data[i])
+                except (ValueError, IndexError):
+                    packet[header] = 0.0
+                i += 1
             # and if the package is not null, display the data
             if packet:
                 self.display_data(packet)
@@ -661,9 +673,13 @@ class EnvelopeWindow:
             self.update_loadframe(packet)
             self.update_plotframe2(packet)
             self.update_controlframes(packet)
-            self.update_sdslpframe(packet)
+            # self.update_sdslpframe(packet)
             self.__oldroll = packet["ROL"]
             self.__oldaoa = packet["AOA"]
+            self.__oldvelocity = packet["ASP"]
+            self.__oldload = packet["LOA"]
+            self.__oldele = packet["ELE"]
+            self.__oldail = packet["AIL"]
 
             print(packet)
             # print("dT of window update:", float(time.time()) - self.__t0)
@@ -742,8 +758,6 @@ class EnvelopeWindow:
         # first attempt throws a TypeError, oldvalues being None
         except TypeError:
             pass
-        self.__oldvelocity = packet["ASP"]
-        self.__oldload = packet["LOA"]
 
         # calculate new coordinates for the target dot
         newxy = [offset[0]-5 + packet["ASP"] * aspscale,
@@ -863,6 +877,19 @@ class EnvelopeWindow:
         rudscale = 0.55
         rudoffset = 513
 
+        try:
+            # create a line from old datapoint to new one
+            self.__controlplot_lines\
+                .append(self.__controlframe1
+                        .create_line(self.__oldail * ailscale - 55,
+                                     self.__oldele * elescale - 25,
+                                     packet["AIL"] * ailscale - 55,
+                                     packet["ELE"] * elescale - 25,
+                                     fill="white"))
+        # first attempt throws a TypeError, oldvalues being None
+        except TypeError:
+            pass
+
         # calculate new coordinates for target dot
         newxy = [offset1[0]-5 + (packet["AIL"] - ailoffset) * ailscale,
                  offset1[1]-5 + (packet["ELE"] - eleoffset) * elescale,
@@ -884,6 +911,14 @@ class EnvelopeWindow:
         # move the rudder diamond
         self.__controlframe2.coords("diamond", *newxy)
         self.__controlframe2.lift("diamond")
+
+        # check if the amount of datapoints is over the limit
+        diff = len(self.__controlplot_lines) - self.__maxdatapoints
+        if diff > 0:
+            # in that case, delete datapoints until difference is 0
+            for _ in range(0, diff):
+                self.__controlframe1.delete(self.__controlplot_lines[0])
+                self.__controlplot_lines.pop(0)
         return
 
     def update_sdslpframe(self, packet):
