@@ -2,7 +2,6 @@
 all the gathered and plotted data from the simulator"""
 
 import math
-import time
 
 from tkinter import Tk, Label, Frame, Canvas, PhotoImage, Button  # , Entry
 from udp_receiver import UDPReceiver
@@ -21,7 +20,7 @@ class EnvelopeWindow:
         self.__root = Tk()
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
-        # self.__root.geometry("1366x748")
+        self.__root.geometry("1366x748")
         self.__baseframe = Frame(self.__root)
         self.__baseframe.pack()
 
@@ -32,8 +31,25 @@ class EnvelopeWindow:
         self.__controlplot_lines = []
         self.__stop = False
 
-        # plot confidence lines
-        self.__plot1_full_confidence = []
+        # plot confidence elements
+        self.__plot1_fullflaps_confidence_lines = []
+        self.__plot1_fullflaps_confidence_texts = []
+        self.__plot1_apprflaps_confidence_lines = []
+        self.__plot1_apprflaps_confidence_texts = []
+        self.__plot1_noflaps_confidence_lines = []
+        self.__plot1_noflaps_confidence_texts = []
+
+        # plot2 no flaps elements
+        self.__plot2_no_flap_lines = []
+        self.__plot2_no_flap_texts = []
+
+        # plot2 approach flaps elements
+        self.__plot2_appr_flap_lines = []
+        self.__plot2_appr_flap_texts = []
+
+        # plot2 full flaps elements
+        self.__plot2_full_flap_lines = []
+        self.__plot2_full_flap_texts = []
 
         # initializing all window elements
         self.__init_titles()
@@ -63,17 +79,17 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 1
+        data_input = 0
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__baseframe.after(100, self.gather_data)
             self.__rx = UDPReceiver()
         elif data_input == 1:
             self.__rx = UDPReceiver()
-            self.__log = open("testi1.log", "r")
+            self.__log = open("testi2.log", "r")
             self.__baseframe.after(100, self.read_log)
 
-        self.__t0 = float(time.time())
+        # self.__t0 = float(time.time())
 
         # fire up the rootwindow
         self.__baseframe.mainloop()
@@ -94,15 +110,15 @@ class EnvelopeWindow:
         Label(self.__baseframe, text="Sideslip-Angle of Attack plot",
               justify="right") .grid(row=1, column=5, columnspan=5, sticky="s")
         Label(self.__baseframe, text="Airspeed-Load plot", justify="right") \
-            .grid(row=1, column=11, sticky="s")
+            .grid(row=1, column=10, columnspan=2, sticky="s")
         Label(self.__baseframe, text="Load bar", justify="right") \
             .grid(row=4, column=1, sticky="e")
         Label(self.__baseframe, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
         Label(self.__baseframe, text="Elevator and\nAileron position",
-              justify="left").grid(row=8, rowspan=3, column=13, sticky="w")
+              justify="left").grid(row=6, rowspan=4, column=11, sticky="w")
         Label(self.__baseframe, text="Rudder position") \
-            .grid(row=12, rowspan=1, column=13, sticky="w")
+            .grid(row=10, rowspan=1, column=11, sticky="w")
         # empty labels as structural dividers
         Label(self.__baseframe, height=0).grid(row=3, column=1, columnspan=4)
         Label(self.__baseframe, height=0).grid(row=5, column=1, columnspan=4)
@@ -210,7 +226,7 @@ class EnvelopeWindow:
                          (4, 15), (4, 20), (0, 20))
         for polarity in (1, -1):
             for pairnmbr in range(0, 10):
-                self.__plot1_full_confidence.append(
+                self.__plot1_fullflaps_confidence_lines.append(
                     self.__plotframe
                         .create_line(offset[0] + polarity
                                      * sds_aoa_pair1[pairnmbr][0] * sdsscale,
@@ -222,7 +238,7 @@ class EnvelopeWindow:
                                      * -aoascale,
                                      fill="green", width=2))
             for pairnmbr in range(0, 5):
-                self.__plot1_full_confidence.append(
+                self.__plot1_fullflaps_confidence_lines.append(
                     self.__plotframe
                         .create_line(offset[0] + polarity
                                      * sds_aoa_pair2[pairnmbr][0] * sdsscale,
@@ -235,7 +251,7 @@ class EnvelopeWindow:
                                      fill="yellow", width=2))
                 if pairnmbr == 2:
                     continue
-                self.__plot1_full_confidence.append(
+                self.__plot1_fullflaps_confidence_lines.append(
                     self.__plotframe
                         .create_line(offset[0] + polarity
                                      * sds_aoa_pair3[pairnmbr][0] * sdsscale,
@@ -247,15 +263,21 @@ class EnvelopeWindow:
                                      * -aoascale,
                                      fill="yellow", width=2, dash=8))
         # confidence line legend
-        self.__plotframe.create_text(498, offset[1]-45,
-                                     text="Full confidence",
-                                     anchor="se", fill="green")
-        self.__plotframe.create_text(502, offset[1]-143,
-                                     text="Medium confidence",
-                                     anchor="se", fill="yellow")
-        self.__plotframe.create_text(500, offset[1]-235,
-                                     text="Extended medium confidence",
-                                     anchor="se", fill="yellow")
+        self.__plot1_fullflaps_confidence_texts \
+            .append(self.__plotframe
+                    .create_text(500, offset[1]-45,
+                                 text="High confidence",
+                                 anchor="se", fill="green"))
+        self.__plot1_fullflaps_confidence_texts \
+            .append(self.__plotframe
+                    .create_text(502, offset[1]-143,
+                                 text="Medium confidence",
+                                 anchor="se", fill="yellow"))
+        self.__plot1_fullflaps_confidence_texts \
+            .append(self.__plotframe
+                    .create_text(500, offset[1]-235,
+                                 text="Extended medium confidence",
+                                 anchor="se", fill="yellow"))
         # init the target dot to origin
         self.__plotframe.move("dot", offset[0]-5, offset[1]-5)
         return
@@ -267,8 +289,13 @@ class EnvelopeWindow:
         # scales
         aspscale = 1.5  # 1.5 px/kt --> 300 kts/positive halfplot
         vmo = 259  # max operating speed
-        vmm = 181  # vmm maneuvering speed
+        vmfd = 157  # max flaps down speed
+        vmaf = 200  # max appr flaps speed
+        vmm = 181  # design maneuvering speed
+        nas = 103  # normal approach speed
         nss = 85  # normal stall speed
+        afss = 75  # approach flaps stall speed // TODO: real value
+        fdss = 75  # flaps down stall speed
         loascale = 87.5  # 87.5 px/g --> 4 g/positive halfplot
         gmp = 3.10  # max positive load
         gmn = 1.24  # max negative load
@@ -278,7 +305,8 @@ class EnvelopeWindow:
         self.__plotframe2 = Canvas(self.__baseframe, height=500, width=500,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
-        self.__plotframe2.grid(row=2, rowspan=6, column=11, sticky="n")
+        self.__plotframe2.grid(row=2, rowspan=6, column=10, columnspan=2,
+                               sticky="nw")
         # nice little fade to black on the background
         self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
         # unit markers
@@ -302,29 +330,108 @@ class EnvelopeWindow:
 
         # limit lines
         # max operating speed
-        self.__plotframe2.create_line(offset[0] + vmo*aspscale, 65,
-                                      offset[0] + vmo*aspscale, 605,
-                                      fill="red", width=2)
-        self.__plotframe2.create_text(offset[0] + vmo*aspscale - 5, 500,
-                                      text="Max\noperating speed",
-                                      anchor="se", fill="red", justify="right")
-        # normal stall speed
-        self.__plotframe2.create_line(offset[0] + nss * aspscale, 240,
-                                      offset[0] + nss * aspscale, 605,
-                                      fill="red", width=2)
-        self.__plotframe2.create_text(offset[0] + nss * aspscale - 5, 500,
-                                      text="Normal stall speed",
-                                      anchor="se", fill="red")
+        self.__plot2_no_flap_lines\
+            .append(self.__plotframe2
+                    .create_line(offset[0] + vmo*aspscale, 65,
+                                 offset[0] + vmo*aspscale, 605,
+                                 fill="red", width=2))
+        self.__plot2_no_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + vmo*aspscale - 5, 500,
+                                 text="Max operating\nspeed (no flaps)",
+                                 anchor="se", fill="red", justify="right"))
+        self.__plot2_full_flap_lines\
+            .append(self.__plotframe2
+                    .create_line(offset[0] + vmfd*aspscale, 65,
+                                 offset[0] + vmfd*aspscale, 605,
+                                 fill="red", width=2, state="hidden"))
+        self.__plot2_full_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + vmfd*aspscale + 5, 500,
+                                 text="Max operating\nspeed (full flaps)",
+                                 anchor="sw", fill="red", justify="left",
+                                 state="hidden"))
+        self.__plot2_appr_flap_lines\
+            .append(self.__plotframe2
+                    .create_line(offset[0] + vmaf*aspscale, 65,
+                                 offset[0] + vmaf*aspscale, 605,
+                                 fill="red", width=2, state="hidden"))
+        self.__plot2_appr_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + vmaf*aspscale - 5, 500,
+                                 text="Max operating\nspeed (appr flaps)",
+                                 anchor="se", fill="red", justify="right",
+                                 state="hidden"))
+        # stall speed
+        self.__plot2_no_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + nss * aspscale, 240,
+                                 offset[0] + nss * aspscale, 605,
+                                 fill="red", width=2))
+        self.__plot2_no_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + nss * aspscale - 5, 500,
+                                 text="Normal stall speed\n(no flaps)",
+                                 anchor="se", fill="red", justify="right"))
+        self.__plot2_appr_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + afss * aspscale, 240,
+                                 offset[0] + afss * aspscale, 605,
+                                 fill="red", width=2, state="hidden"))
+        self.__plot2_appr_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + afss * aspscale - 5, 500,
+                                 text="Normal stall speed\n(appr flaps)",
+                                 anchor="se", fill="red", justify="right",
+                                 state="hidden"))
+        self.__plot2_full_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + fdss * aspscale, 240,
+                                 offset[0] + fdss * aspscale, 605,
+                                 fill="red", width=2, state="hidden"))
+        self.__plot2_full_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + fdss * aspscale - 5, 500,
+                                 text="Normal stall speed\n(full flaps)",
+                                 anchor="se", fill="red", justify="right",
+                                 state="hidden"))
         # max maneuver speed
-        self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
-                                      offset[0] + vmm*aspscale, 605,
-                                      fill="green", dash=4)
-        self.__plotframe2.create_text(offset[0] + vmm*aspscale - 5, 500,
-                                      text="Maneuvering\nspeed",
-                                      anchor="se", fill="green",
-                                      justify="right")
+        self.__plot2_no_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + vmm*aspscale, 0,
+                                 offset[0] + vmm*aspscale, 605,
+                                 fill="green", dash=4))
+        self.__plot2_no_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + vmm*aspscale - 5, 75,
+                                 text="Maneuvering\nspeed",
+                                 anchor="se", fill="green",
+                                 justify="right"))
+        self.__plot2_appr_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + nas*aspscale, 0,
+                                 offset[0] + nas*aspscale, 605,
+                                 fill="green", dash=4, state="hidden"))
+        self.__plot2_appr_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + nas*aspscale - 5, 75,
+                                 text="Normal approach\nspeed",
+                                 anchor="se", fill="green",
+                                 justify="right", state="hidden"))
+        self.__plot2_full_flap_lines \
+            .append(self.__plotframe2
+                    .create_line(offset[0] + nas*aspscale, 0,
+                                 offset[0] + nas*aspscale, 605,
+                                 fill="green", dash=4, state="hidden"))
+        self.__plot2_full_flap_texts \
+            .append(self.__plotframe2
+                    .create_text(offset[0] + nas*aspscale - 5, 100,
+                                 text="Normal approach\nspeed",
+                                 anchor="se", fill="green",
+                                 justify="right", state="hidden"))
+
         # max positive load
-        self.__plotframe2.create_line(300, offset[1] - gmp*loascale, 605,
+        self.__plotframe2.create_line(200, offset[1] - gmp*loascale, 605,
                                       offset[1] - gmp * loascale,
                                       fill="red", width=2)
         self.__plotframe2.create_text(500, offset[1] - gmp*loascale - 2,
@@ -337,15 +444,39 @@ class EnvelopeWindow:
         self.__plotframe2.create_text(500, offset[1] + gmn*loascale - 2,
                                       text="Max\n(-) load",
                                       anchor="se", fill="red", justify="right")
-        old_y = 0
-        x = 40
-        while x < 281:
+        old_y = 80
+        x = 160
+        while x < 281:  # no flaps
             y = 0.0021722547*(x**2) + 0.4093120328*x
-            self.__plotframe2.create_line(offset[0]+x-40, offset[1]-old_y,
-                                          offset[0]+x, offset[1]-y,
-                                          fill="red", width=2)
+            self.__plot2_no_flap_lines \
+                .append(self.__plotframe2
+                        .create_line(offset[0]+x-40, offset[1]-old_y,
+                                     offset[0]+x, offset[1]-y,
+                                     fill="red", width=2))
             old_y = y
             x += 40
+        old_y = 60
+        x = 110
+        while x < 161:  # approach flaps
+            y = 0.0233*(x**2) - 1.8416*x
+            self.__plot2_appr_flap_lines \
+                .append(self.__plotframe2
+                        .create_line(offset[0]+x-5, offset[1]-old_y,
+                                     offset[0]+x, offset[1]-y,
+                                     fill="red", width=2, state="hidden"))
+            old_y = y
+            x += 5
+        old_y = 60
+        x = 110
+        while x < 161:  # full flaps
+            y = 0.0233*(x**2) - 1.8416*x
+            self.__plot2_full_flap_lines \
+                .append(self.__plotframe2
+                        .create_line(offset[0]+x-5, offset[1]-old_y,
+                                     offset[0]+x, offset[1]-y,
+                                     fill="red", width=2, state="hidden"))
+            old_y = y
+            x += 5
 
         # origin dot
         self.__plotframe2.create_oval(offset[0]-2, offset[1]-2,
@@ -433,7 +564,7 @@ class EnvelopeWindow:
         self.__controlframe1 = Canvas(self.__baseframe, width=400, height=150,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe1.grid(row=8, rowspan=4, column=11, columnspan=3)
+        self.__controlframe1.grid(row=6, rowspan=4, column=10, stick="w")
         # nice little fade to black on the background
         self.img2 = PhotoImage(file="images/graphbg_c.gif")
         self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
@@ -466,7 +597,7 @@ class EnvelopeWindow:
         self.__controlframe2 = Canvas(self.__baseframe, width=400, height=20,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe2.grid(row=12, column=11, columnspan=3)
+        self.__controlframe2.grid(row=10, column=10, stick="w")
         # axis
         self.__controlframe2.create_line(200, 0, 200, 25, fill="white")
         # axis legend
@@ -520,14 +651,14 @@ class EnvelopeWindow:
                                    command=self.__toggle_stop,
                                    height=4, width=10,
                                    activebackground="red")
-        self.__stopbutton.grid(row=10, column=5)
+        self.__stopbutton.grid(row=9, column=5)
 
         # create a clear button and assign command
         self.__clearbutton = Button(self.__baseframe, text="Clear",
                                     command=self.clear_plots,
                                     height=4, width=10,
                                     activebackground="blue")
-        self.__clearbutton.grid(row=10, column=9)
+        self.__clearbutton.grid(row=9, column=9)
 
         # # create a text label describing the purpose of the entry box
         # Label(self.__root, text="Limit data points to last:") \
@@ -738,9 +869,90 @@ class EnvelopeWindow:
             self.__oldele = packet["ELE"]
             self.__oldail = packet["AIL"]
 
-            print(packet)
-            # print("dT of window update:", float(time.time()) - self.__t0)
-            # self.__t0 = float(time.time())
+            self.update_limits(packet["FLP"])
+
+        return
+
+    def update_limits(self, flaps):
+        """update_limits updates limit lines in plots 1 and 2
+        according to the planes flaps position"""
+
+        if flaps < 10:  # no flaps
+            for line in self.__plot2_no_flap_lines:
+                self.__plotframe2.itemconfig(line, state="normal")
+            for text in self.__plot2_no_flap_texts:
+                self.__plotframe2.itemconfig(text, state="normal")
+            for line in self.__plot2_appr_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_appr_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot2_full_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_full_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot1_noflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="normal")
+            for text in self.__plot1_noflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="normal")
+            for line in self.__plot1_apprflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_apprflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+            for line in self.__plot1_fullflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_fullflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+        elif flaps < 30:  # approach flaps
+            for line in self.__plot2_no_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_no_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot2_appr_flap_lines:
+                self.__plotframe2.itemconfig(line, state="normal")
+            for text in self.__plot2_appr_flap_texts:
+                self.__plotframe2.itemconfig(text, state="normal")
+            for line in self.__plot2_full_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_full_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot1_noflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_noflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+            for line in self.__plot1_apprflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="normal")
+            for text in self.__plot1_apprflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="normal")
+            for line in self.__plot1_fullflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_fullflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+        else:  # full flaps
+            for line in self.__plot2_no_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_no_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot2_appr_flap_lines:
+                self.__plotframe2.itemconfig(line, state="hidden")
+            for text in self.__plot2_appr_flap_texts:
+                self.__plotframe2.itemconfig(text, state="hidden")
+            for line in self.__plot2_full_flap_lines:
+                self.__plotframe2.itemconfig(line, state="normal")
+            for text in self.__plot2_full_flap_texts:
+                self.__plotframe2.itemconfig(text, state="normal")
+            for line in self.__plot1_noflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_noflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+            for line in self.__plot1_apprflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="hidden")
+            for text in self.__plot1_apprflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="hidden")
+            for line in self.__plot1_fullflaps_confidence_lines:
+                self.__plotframe.itemconfig(line, state="normal")
+            for text in self.__plot1_fullflaps_confidence_texts:
+                self.__plotframe.itemconfig(text, state="normal")
+
         return
 
     def update_logframe(self, packet):
