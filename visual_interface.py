@@ -116,9 +116,9 @@ class EnvelopeWindow:
         Label(self.__baseframe, text="Absolute inclination")\
             .grid(row=6, column=1, columnspan=4)
         Label(self.__baseframe, text="Elevator and\nAileron position",
-              justify="left").grid(row=6, rowspan=4, column=11, sticky="w")
+              justify="left").grid(row=7, rowspan=4, column=11, sticky="w")
         Label(self.__baseframe, text="Rudder position") \
-            .grid(row=10, rowspan=1, column=11, sticky="w")
+            .grid(row=11, rowspan=1, column=11, sticky="w")
         # empty labels as structural dividers
         Label(self.__baseframe, height=0).grid(row=3, column=1, columnspan=4)
         Label(self.__baseframe, height=0).grid(row=5, column=1, columnspan=4)
@@ -162,7 +162,7 @@ class EnvelopeWindow:
         # init the frame
         self.__plotframe = Canvas(self.__baseframe, height=500, width=500,
                                   borderwidth=4, relief="sunken", bg="#0f228b")
-        self.__plotframe.grid(row=2, rowspan=6, column=5, columnspan=5,
+        self.__plotframe.grid(row=2, rowspan=5, column=5, columnspan=5,
                               sticky="n")
         # nice little fade to black on the background
         self.img = PhotoImage(file="images/graphbg.gif")
@@ -305,7 +305,7 @@ class EnvelopeWindow:
         self.__plotframe2 = Canvas(self.__baseframe, height=500, width=500,
                                    borderwidth=4, relief="sunken",
                                    bg="#0f228b")
-        self.__plotframe2.grid(row=2, rowspan=6, column=10, columnspan=2,
+        self.__plotframe2.grid(row=2, rowspan=5, column=10, columnspan=2,
                                sticky="nw")
         # nice little fade to black on the background
         self.__plotframe2.create_image(0, 0, image=self.img, anchor="nw")
@@ -564,7 +564,7 @@ class EnvelopeWindow:
         self.__controlframe1 = Canvas(self.__baseframe, width=400, height=150,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe1.grid(row=6, rowspan=4, column=10, stick="w")
+        self.__controlframe1.grid(row=7, rowspan=4, column=10, stick="w")
         # nice little fade to black on the background
         self.img2 = PhotoImage(file="images/graphbg_c.gif")
         self.__controlframe1.create_image(0, 0, image=self.img2, anchor="nw")
@@ -597,7 +597,7 @@ class EnvelopeWindow:
         self.__controlframe2 = Canvas(self.__baseframe, width=400, height=20,
                                       borderwidth=4,
                                       relief="sunken", bg="#0f228b")
-        self.__controlframe2.grid(row=10, column=10, stick="w")
+        self.__controlframe2.grid(row=11, column=10, stick="w")
         # axis
         self.__controlframe2.create_line(200, 0, 200, 25, fill="white")
         # axis legend
