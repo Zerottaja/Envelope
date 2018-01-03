@@ -79,7 +79,7 @@ class EnvelopeWindow:
 
         # initializing input with 0 being TCP packets, 1 being UDP packets
         # and 2 being pre-recorded data
-        data_input = 0
+        data_input = 1
         if data_input == 0:
             self.__hdr = HexDumpReader()
             self.__baseframe.after(100, self.gather_data)
@@ -292,10 +292,9 @@ class EnvelopeWindow:
         vmfd = 157  # max flaps down speed
         vmaf = 200  # max appr flaps speed
         vmm = 181  # design maneuvering speed
-        nas = 103  # normal approach speed
-        nss = 85  # normal stall speed
-        afss = 75  # approach flaps stall speed // TODO: real value
-        fdss = 75  # flaps down stall speed
+        nss = 99  # normal stall speed
+        afss = 89  # approach flaps stall speed
+        fdss = 82  # flaps down stall speed
         loascale = 87.5  # 87.5 px/g --> 4 g/positive halfplot
         gmp = 3.10  # max positive load
         gmn = 1.24  # max negative load
@@ -396,39 +395,13 @@ class EnvelopeWindow:
                                  anchor="se", fill="red", justify="right",
                                  state="hidden"))
         # max maneuver speed
-        self.__plot2_no_flap_lines \
-            .append(self.__plotframe2
-                    .create_line(offset[0] + vmm*aspscale, 0,
-                                 offset[0] + vmm*aspscale, 605,
-                                 fill="green", dash=4))
-        self.__plot2_no_flap_texts \
-            .append(self.__plotframe2
-                    .create_text(offset[0] + vmm*aspscale - 5, 75,
-                                 text="Maneuvering\nspeed",
-                                 anchor="se", fill="green",
-                                 justify="right"))
-        self.__plot2_appr_flap_lines \
-            .append(self.__plotframe2
-                    .create_line(offset[0] + nas*aspscale, 0,
-                                 offset[0] + nas*aspscale, 605,
-                                 fill="green", dash=4, state="hidden"))
-        self.__plot2_appr_flap_texts \
-            .append(self.__plotframe2
-                    .create_text(offset[0] + nas*aspscale - 5, 75,
-                                 text="Normal approach\nspeed",
-                                 anchor="se", fill="green",
-                                 justify="right", state="hidden"))
-        self.__plot2_full_flap_lines \
-            .append(self.__plotframe2
-                    .create_line(offset[0] + nas*aspscale, 0,
-                                 offset[0] + nas*aspscale, 605,
-                                 fill="green", dash=4, state="hidden"))
-        self.__plot2_full_flap_texts \
-            .append(self.__plotframe2
-                    .create_text(offset[0] + nas*aspscale - 5, 100,
-                                 text="Normal approach\nspeed",
-                                 anchor="se", fill="green",
-                                 justify="right", state="hidden"))
+        self.__plotframe2.create_line(offset[0] + vmm*aspscale, 0,
+                                      offset[0] + vmm*aspscale, 605,
+                                      fill="green", dash=4)
+        self.__plotframe2.create_text(offset[0] + vmm*aspscale - 5, 45,
+                                      text="Maneuvering\nspeed",
+                                      anchor="se", fill="green",
+                                      justify="right")
 
         # max positive load
         self.__plotframe2.create_line(200, offset[1] - gmp*loascale, 605,
@@ -445,20 +418,20 @@ class EnvelopeWindow:
                                       text="Max\n(-) load",
                                       anchor="se", fill="red", justify="right")
         old_y = 80
-        x = 160
+        x = 150
         while x < 281:  # no flaps
-            y = 0.0021722547*(x**2) + 0.4093120328*x
+            y = 0.00333214*(x**2) + 0.0944*x
             self.__plot2_no_flap_lines \
                 .append(self.__plotframe2
-                        .create_line(offset[0]+x-40, offset[1]-old_y,
+                        .create_line(offset[0]+x-10, offset[1]-old_y,
                                      offset[0]+x, offset[1]-y,
                                      fill="red", width=2))
             old_y = y
-            x += 40
-        old_y = 60
-        x = 110
-        while x < 161:  # approach flaps
-            y = 0.0233*(x**2) - 1.8416*x
+            x += 10
+        old_y = 75
+        x = 125
+        while x < 281:  # approach flaps
+            y = 0.00249*(x**2) + 0.322988*x
             self.__plot2_appr_flap_lines \
                 .append(self.__plotframe2
                         .create_line(offset[0]+x-5, offset[1]-old_y,
@@ -466,10 +439,10 @@ class EnvelopeWindow:
                                      fill="red", width=2, state="hidden"))
             old_y = y
             x += 5
-        old_y = 60
-        x = 110
-        while x < 161:  # full flaps
-            y = 0.0233*(x**2) - 1.8416*x
+        old_y = 70
+        x = 112
+        while x < 251:  # full flaps
+            y = 0.00391*(x**2) + 0.22985*x
             self.__plot2_full_flap_lines \
                 .append(self.__plotframe2
                         .create_line(offset[0]+x-5, offset[1]-old_y,
