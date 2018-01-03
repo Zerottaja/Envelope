@@ -43,4 +43,3 @@ if __name__ == '__main__':
     RN = RelayNode()
     while True:
         DATA = RN.gather_data()
-        print(DATA)
