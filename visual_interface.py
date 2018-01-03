@@ -21,7 +21,8 @@ class EnvelopeWindow:
         self.__root.title("Simulator Envelope")
         self.__root.resizable(width=False, height=False)
         self.__root.geometry("1366x748")
-        self.__baseframe = Frame(self.__root)
+        self.__root.config(background="#242424")
+        self.__baseframe = Frame(self.__root, bg="#242424")
         self.__baseframe.pack()
 
         # datapoints (plot lines) are stored in lists
@@ -101,27 +102,37 @@ class EnvelopeWindow:
         and some strucural elements on the root window"""
 
         # titles
-        Label(self.__baseframe, text="Value log")\
+        Label(self.__baseframe, text="Value log", bg="#242424", fg="white")\
             .grid(row=1, column=1, columnspan=4)
-        Label(self.__baseframe, text="AOA bar", justify="left") \
+        Label(self.__baseframe, text="AOA bar", justify="left",
+              bg="#242424", fg="white") \
             .grid(row=4, column=4, sticky="w")
-        Label(self.__baseframe, text="Load bar", justify="right") \
+        Label(self.__baseframe, text="Load bar", justify="right",
+              bg="#242424", fg="white") \
             .grid(row=4, column=1, sticky="e")
         Label(self.__baseframe, text="Sideslip-Angle of Attack plot",
-              justify="right") .grid(row=1, column=5, columnspan=5, sticky="s")
-        Label(self.__baseframe, text="Airspeed-Load plot", justify="right") \
+              justify="right", bg="#242424", fg="white")\
+            .grid(row=1, column=5, columnspan=5, sticky="s")
+        Label(self.__baseframe, text="Airspeed-Load plot", justify="right",
+              bg="#242424", fg="white") \
             .grid(row=1, column=10, columnspan=2, sticky="s")
-        Label(self.__baseframe, text="Load bar", justify="right") \
+        Label(self.__baseframe, text="Load bar", justify="right",
+              bg="#242424", fg="white") \
             .grid(row=4, column=1, sticky="e")
-        Label(self.__baseframe, text="Absolute inclination")\
+        Label(self.__baseframe, text="Absolute inclination",
+              bg="#242424", fg="white")\
             .grid(row=6, column=1, columnspan=4)
         Label(self.__baseframe, text="Elevator and\nAileron position",
-              justify="left").grid(row=7, rowspan=4, column=11, sticky="w")
-        Label(self.__baseframe, text="Rudder position") \
+              justify="left", bg="#242424", fg="white")\
+            .grid(row=7, rowspan=4, column=11, sticky="w")
+        Label(self.__baseframe, text="Rudder position",
+              bg="#242424", fg="white") \
             .grid(row=11, rowspan=1, column=11, sticky="w")
         # empty labels as structural dividers
-        Label(self.__baseframe, height=0).grid(row=3, column=1, columnspan=4)
-        Label(self.__baseframe, height=0).grid(row=5, column=1, columnspan=4)
+        Label(self.__baseframe, height=0, bg="#242424", fg="white")\
+            .grid(row=3, column=1, columnspan=4)
+        Label(self.__baseframe, height=0, bg="#242424", fg="white")\
+            .grid(row=5, column=1, columnspan=4)
         return
 
     def __init_logframe(self):
@@ -130,7 +141,8 @@ class EnvelopeWindow:
 
         # init the frame
         self.__logframe \
-            = Frame(self.__baseframe, borderwidth=4, relief="sunken")
+            = Frame(self.__baseframe, borderwidth=4, relief="sunken",
+                    bg="#242424")
         self.__logframe.grid(row=2, column=1, columnspan=4, sticky="n")
         self.__logframe.grid_propagate(0)
         self.__logframe_contents = dict()
@@ -139,13 +151,13 @@ class EnvelopeWindow:
             = Label(self.__logframe,
                     text="ROLL:\t\nPITCH:\t\nHDG:\t\nAOA:\t\n"
                          "SIDESLP:\t\nLOAD:\t\nAIRSPD:\t\nFLAPS:\t",
-                    justify="left", bg='white')
+                    justify="left", bg='grey', fg="white")
         self.__logframe_contents["headers"].pack(side="left")
         # default values before receiving data are "n/a"
         self.__logframe_contents["values"] \
             = Label(self.__logframe,
                     text="n/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a\nn/a",
-                    justify="right", bg='white')
+                    justify="right", bg='grey', fg="white")
         self.__logframe_contents["values"].pack(side="right")
         return
 
@@ -476,10 +488,10 @@ class EnvelopeWindow:
         # init the frame
         self.__aoaframe = Canvas(self.__baseframe, width=25, height=300,
                                  borderwidth=4,
-                                 relief="sunken", bg="white")
+                                 relief="sunken", bg="grey")
         self.__aoaframe.grid(row=4, column=3, sticky="nw")
         # create a zero-level line
-        self.__aoaframe.create_line(0, 150, 30, 150, fill="black")
+        self.__aoaframe.create_line(0, 150, 30, 150, fill="#242424")
         # create the bar as a stretching polygon
         self.__aoaframe.create_polygon(0, 150, 30, 150, 30, 150, 0, 150,
                                        fill="#005a08", tags="aoabar")
@@ -492,10 +504,10 @@ class EnvelopeWindow:
         # init the frame
         self.__loadframe = Canvas(self.__baseframe, width=25, height=300,
                                   borderwidth=4,
-                                  relief="sunken", bg="white")
+                                  relief="sunken", bg="grey")
         self.__loadframe.grid(row=4, column=2, sticky="ne")
         # create a zero-level line
-        self.__loadframe.create_line(0, 150, 30, 150, fill="black")
+        self.__loadframe.create_line(0, 150, 30, 150, fill="#242424")
         # create the bar as a stretching polygon
         self.__loadframe.create_polygon(0, 150, 30, 150, 30, 150, 0, 150,
                                         fill="#005a08", tags="loadbar")
@@ -512,10 +524,14 @@ class EnvelopeWindow:
         self.__inclframe.grid(row=7, rowspan=6,
                               column=1, columnspan=4, sticky="n")
         # create the crossbar
-        self.__inclframe.create_line(30, 100, 90, 100, fill="black", width=2)
-        self.__inclframe.create_line(90, 100, 90, 110, fill="black", width=2)
-        self.__inclframe.create_line(110, 100, 110, 110, fill="black", width=2)
-        self.__inclframe.create_line(170, 100, 110, 100, fill="black", width=2)
+        self.__inclframe.create_line(30, 100, 90, 100,
+                                     fill="#242424", width=2)
+        self.__inclframe.create_line(90, 100, 90, 110,
+                                     fill="#242424", width=2)
+        self.__inclframe.create_line(110, 100, 110, 110,
+                                     fill="#242424", width=2)
+        self.__inclframe.create_line(170, 100, 110, 100,
+                                     fill="#242424", width=2)
         self.__inclframe.create_oval(99, 99, 101, 101)
         # create a tuple list for ground sprite coordinates
         self.__gndxy = [(-100, 100), (300, 100), (300, 300), (-100, 300)]
@@ -623,14 +639,14 @@ class EnvelopeWindow:
         self.__stopbutton = Button(self.__baseframe, text="Stop",
                                    command=self.__toggle_stop,
                                    height=4, width=10,
-                                   activebackground="red")
+                                   activebackground="red", bg="grey")
         self.__stopbutton.grid(row=9, column=5)
 
         # create a clear button and assign command
         self.__clearbutton = Button(self.__baseframe, text="Clear",
                                     command=self.clear_plots,
                                     height=4, width=10,
-                                    activebackground="blue")
+                                    activebackground="blue", bg="grey")
         self.__clearbutton.grid(row=9, column=9)
 
         # # create a text label describing the purpose of the entry box
@@ -940,7 +956,7 @@ class EnvelopeWindow:
                        % (packet["ROL"], packet["PTC"], packet["HDG"],
                           packet["AOA"], packet["SDS"], packet["LOA"],
                           packet["ASP"], packet["FLP"],),
-                       justify="right", bg='white')
+                       justify="right", bg='grey')
         return
 
     def update_plotframe(self, packet):
@@ -1112,7 +1128,7 @@ class EnvelopeWindow:
 
         offset1 = (200, 50)
         offset2 = (200, 14)
-        ailoffset = 535
+        ailoffset = 520
         ailscale = 0.4768
         elescale = 0.1960
         eleoffset = 365
